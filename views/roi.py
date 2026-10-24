@@ -66,7 +66,7 @@ with tab_many:
     if seeded:
         start = pd.DataFrame(
             [
-                {"Creator": r["handle"] or r["name"], "Platform": r["platform"], "Fee ($)": 1000.0,
+                {"Creator": r["handle"], "Platform": r["platform"], "Fee ($)": 1000.0,
                  "Expected views": 50000.0, "CTR (%)": 1.0, "Click→lead (%)": 8.0}
                 for r in seeded
             ]

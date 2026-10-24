@@ -18,8 +18,8 @@ def test_every_page_renders():
 
 def test_scout_flow():
     creator = Creator(
-        name="Jane Money", handle="@janemoney", platform="TikTok", profile_url="https://tiktok.com/@janemoney",
-        followers="85K", content_summary="Budgeting tips", audience_fit="Young adults on tight budgets",
+        name="Jane Money", handle="@janemoney", platform="TikTok",
+        followers=85000, content_summary="Budgeting tips", audience_fit="Young adults on tight budgets",
         fit_score=8, best_brand="Grace Loan Advance", brand_safety_flags=[], outreach_message="Hi Jane!",
         source_url="https://example.com/list",
     )
@@ -61,3 +61,13 @@ def test_scout_flow():
         assert not at.exception, at.exception
         assert at.session_state["scout_result"].creators[0].handle == "@janemoney"
         assert any("personal finance tiktok creators" in m.value for m in at.markdown)
+
+
+def test_handles_and_followers_are_standardized():
+    from core.scout import clean_handle, format_followers
+
+    assert clean_handle("https://www.instagram.com/janemoney/") == "@janemoney"
+    assert clean_handle("janemoney") == "@janemoney"
+    assert clean_handle("") == ""
+    assert format_followers(61300) == "61.3K"
+    assert format_followers(1_000_000) == "1M"

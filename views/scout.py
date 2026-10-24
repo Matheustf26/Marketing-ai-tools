@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from core.llm import ClaudeError, get_client
-from core.scout import build_research_prompt, research, structure
+from core.scout import build_research_prompt, clean_handle, format_followers, research, structure
 from core.ui import header
 
 header("scout", "Creator Scout", "Real creators found on the web, scored for fit and brand safety, with a first message ready to send.")
@@ -46,44 +46,47 @@ if submitted:
 
 result = st.session_state.get("scout_result")
 if result:
-    st.info(result.search_summary)
     df = pd.DataFrame([c.model_dump() for c in result.creators])
     if df.empty:
-        st.warning("No creators found. Try a broader niche or another platform.")
+        st.warning("No creators with a confirmed handle and follower count. Try a broader niche or another platform.")
         st.stop()
-    df = df.sort_values("fit_score", ascending=False)
-    df["brand_safety_flags"] = df["brand_safety_flags"].apply(lambda f: "; ".join(f) if f else "None found")
+    df["handle"] = df["handle"].map(clean_handle)
+    df = df.sort_values(["fit_score", "followers"], ascending=False)
+    df["followers_label"] = df["followers"].map(format_followers)
+    df["brand_safety"] = df["brand_safety_flags"].apply(lambda f: "; ".join(f) if f else "None found")
 
+    st.subheader(f"{len(df)} creators")
+    st.caption(result.search_summary)
     st.dataframe(
-        df[["name", "handle", "platform", "followers", "fit_score", "best_brand", "brand_safety_flags", "profile_url"]],
+        df[["name", "handle", "platform", "followers_label", "fit_score", "best_brand"]],
         column_config={
-            "name": "Name",
+            "name": "Creator",
             "handle": "Handle",
             "platform": "Platform",
-            "followers": "Followers",
+            "followers_label": "Followers",
+            "fit_score": st.column_config.ProgressColumn("Fit", min_value=0, max_value=10, format="%d/10"),
             "best_brand": "Best brand",
-            "brand_safety_flags": st.column_config.TextColumn("Brand safety", width="large"),
-            "profile_url": st.column_config.LinkColumn("Profile"),
-            "fit_score": st.column_config.ProgressColumn("Fit", min_value=0, max_value=10, format="%d"),
         },
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
     )
 
     st.subheader("Details and outreach")
     for _, row in df.iterrows():
-        with st.expander(f"{row['name']} ({row['handle'] or row['platform']}), fit {row['fit_score']}/10"):
+        label = f"{row['name']}, {row['handle']}, {row['followers_label']} on {row['platform']}, fit {row['fit_score']}/10"
+        with st.expander(label):
             st.write(f"**What they post:** {row['content_summary']}")
             st.write(f"**Why they fit:** {row['audience_fit']}")
             st.write(f"**Best brand:** {row['best_brand']}")
-            st.write(f"**Brand safety:** {row['brand_safety_flags']}")
-            st.write(f"**Source:** {row['source_url']}")
+            st.write(f"**Brand safety:** {row['brand_safety']}")
             st.text_area("First message", row["outreach_message"], key=f"dm_{row.name}", height=110)
 
+    export = df[
+        ["name", "handle", "platform", "followers", "fit_score", "best_brand", "brand_safety",
+         "content_summary", "audience_fit", "outreach_message", "source_url"]
+    ]
     c1, c2 = st.columns(2)
-    c1.download_button(
-        "Download CSV", df.to_csv(index=False).encode(), file_name="creators.csv", mime="text/csv"
-    )
+    c1.download_button("Download CSV", export.to_csv(index=False).encode(), file_name="creators.csv", mime="text/csv")
     if c2.button("Send shortlist to ROI Planner"):
         st.session_state["roi_creators"] = df[["name", "handle", "platform", "followers"]].to_dict("records")
         st.switch_page("views/roi.py")

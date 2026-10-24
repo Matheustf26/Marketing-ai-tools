@@ -12,11 +12,10 @@ MAX_CONTINUATIONS = 5
 
 
 class Creator(BaseModel):
-    name: str = Field(description="Creator's display name")
-    handle: str = Field(description="Main @handle, or empty if unknown")
-    platform: Literal["Instagram", "TikTok", "YouTube", "X", "Other"]
-    profile_url: str = Field(description="Profile URL found in the search results")
-    followers: str = Field(description="Approximate follower count as found, e.g. '120K', or 'unknown'")
+    name: str = Field(description="Creator's name only, with no channel name or notes in parentheses")
+    handle: str = Field(description="Their @handle on this platform, starting with @")
+    platform: Literal["Instagram", "TikTok", "YouTube", "X"] = Field(description="The platform the follower count is for")
+    followers: int = Field(description="Follower count on that platform as a whole number, e.g. 61300")
     content_summary: str = Field(description="One sentence on what they post")
     audience_fit: str = Field(description="Why their audience matches the brief")
     fit_score: int = Field(description="1 to 10, how well they match the brief")
@@ -25,12 +24,26 @@ class Creator(BaseModel):
         description="Risks: misleading money claims, controversy, competitor deals, low engagement. Empty if none found."
     )
     outreach_message: str = Field(description="Short, personal first DM (3 to 4 sentences)")
-    source_url: str = Field(description="Page where this creator was found")
+    source_url: str = Field(description="Page where the handle or follower count was found")
 
 
 class ScoutResult(BaseModel):
-    search_summary: str = Field(description="Two sentences on where the creators were found and any gaps")
+    search_summary: str = Field(description="One short sentence on where the creators were found")
     creators: list[Creator]
+
+
+def clean_handle(handle: str) -> str:
+    """'instagram.com/jane/' or 'jane' -> '@jane'."""
+    handle = handle.strip().rstrip("/").split("/")[-1].lstrip("@")
+    return f"@{handle}" if handle else ""
+
+
+def format_followers(n: int) -> str:
+    if n >= 1_000_000:
+        return f"{n / 1_000_000:.1f}M".replace(".0M", "M")
+    if n >= 1_000:
+        return f"{n / 1_000:.1f}K".replace(".0K", "K")
+    return str(n)
 
 
 RESEARCH_SYSTEM = """You are an influencer marketing researcher. You find real creators with web search.
@@ -38,9 +51,9 @@ RESEARCH_SYSTEM = """You are an influencer marketing researcher. You find real c
 Rules:
 - Only list creators you actually found in search results. Never invent names, handles, URLs or numbers.
 - Prefer lists, articles and directories that name creators in the niche (e.g. "top personal finance TikTokers"), then confirm each profile.
-- Follower counts change: report what the source says and say "unknown" when you did not see one.
-  For promising creators, run one quick search on their handle (e.g. "@handle tiktok followers") to find a count
-  in articles, media kits or creator directories before giving up.
+- Every creator you list needs three things from a source: their @handle, the platform, and a follower count on
+  that platform. For promising creators, run one quick search on their handle (e.g. "@handle tiktok followers")
+  to find them. If you can't find all three, leave the creator out.
 - Flag brand-safety risks honestly: get-rich-quick claims, controversies, promoting competitors, signs of fake followers.
 - In regulated categories (finance, health), note anything that could create compliance risk."""
 
@@ -56,7 +69,7 @@ Creator size: {size}
 Brands we might pair them with:
 {brands}
 
-For each creator, give: name, handle, platform, profile URL, follower count as found, what they post,
+For each creator, give: name, @handle, platform, follower count on that platform, what they post,
 why the audience fits, a 1-10 fit score, the best brand match, brand-safety flags, and the source URL.
 Then write a short, personal first outreach DM for each one."""
 
@@ -101,10 +114,15 @@ def structure(client: anthropic.Anthropic, notes: str) -> ScoutResult:
         messages=[
             {
                 "role": "user",
-                "content": "Convert these research notes into the schema. Keep only creators that have a profile "
-                "or source URL in the notes. Do not add anyone new.\n\n" + notes,
+                "content": "Convert these research notes into the schema. Keep only creators whose notes give an "
+                "@handle, one platform and a follower count on that platform. Leave out everyone else, and "
+                "do not add anyone new.\n\n" + notes,
             }
         ],
     )
     check_refusal(response)
-    return response.parsed_output
+    result = response.parsed_output
+    for c in result.creators:
+        c.handle = clean_handle(c.handle)
+    result.creators = [c for c in result.creators if c.handle and c.followers > 0]
+    return result
