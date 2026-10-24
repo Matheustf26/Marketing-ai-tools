@@ -2,14 +2,17 @@ import pandas as pd
 import streamlit as st
 
 from core.brief import write_brief
-from core.llm import ClaudeError, api_key_sidebar, get_client
+from core.llm import ClaudeError, get_client
 from core.roi import Plan, project, scenarios, utm_link
+from core.ui import header, setup
 
-st.set_page_config(page_title="Creator ROI Planner", page_icon="💰", layout="wide")
-api_key_sidebar()
-
-st.title("💰 Creator ROI Planner")
-st.caption("How does an influencer campaign make money? Model it before you pay anyone.")
+setup("Creator ROI Planner", "💰")
+header(
+    "💰 Creator ROI Planner · How it makes money",
+    "Know what a creator is worth before you pay",
+    "Every sponsored post is a small lead-gen campaign: views → clicks → leads → revenue. "
+    "Model it, set the maximum fee, track every creator.",
+)
 
 
 def money(x):
@@ -23,7 +26,6 @@ tab_one, tab_many, tab_links, tab_brief = st.tabs(
 )
 
 with tab_one:
-    st.markdown("Every post is a small lead-gen campaign: **views → clicks → leads → revenue**.")
     c1, c2, c3, c4, c5 = st.columns(5)
     fee = c1.number_input("Creator fee ($)", min_value=0.0, value=1500.0, step=100.0)
     views = c2.number_input("Expected views", min_value=0.0, value=80000.0, step=5000.0)

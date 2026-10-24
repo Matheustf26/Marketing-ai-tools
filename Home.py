@@ -1,42 +1,56 @@
 import streamlit as st
 
-from core.llm import api_key_sidebar
+from core.ui import card, header, setup, steps
 
-st.set_page_config(page_title="Marketing AI Tools", page_icon="📣", layout="wide")
-api_key_sidebar()
-
-st.title("Marketing AI Tools")
-st.write(
-    "Three tools built with Claude to turn influencer marketing into a measurable acquisition channel: "
-    "know what's trending, find the right creators, then prove the money before you pay them."
+setup("Home", "📣")
+header(
+    "Creator Suite",
+    "Influencer marketing that pays for itself",
+    "Three tools built with Claude: know what to talk about this week, find the right creators, "
+    "and prove the return before you pay anyone.",
 )
 
-col0, col1, col2 = st.columns(3)
-with col0:
-    st.subheader("📡 Trend Radar")
-    st.write(
-        "What's getting attention in your segment this week: topics, standout creators and posts, "
-        "and a content idea for each brand. A new report every Monday and Friday."
-    )
-    st.page_link("pages/3_Trend_Radar.py", label="Open Trend Radar", icon="📡")
+col1, col2, col3 = st.columns(3)
 with col1:
-    st.subheader("🔎 Creator Scout")
-    st.write(
-        "Describe a niche or product. Claude searches the web and returns real creators with audience fit, "
-        "best brand match, brand-safety flags and a first outreach message. Export to CSV."
+    card(
+        "📡",
+        "Creator Radar",
+        "What to talk about",
+        "This week's top topics and standout creators in your segment, with a content idea for each brand. "
+        "New report every Monday and Friday.",
+        "pages/1_Creator_Radar.py",
+        "Open Creator Radar",
     )
-    st.page_link("pages/1_Creator_Scout.py", label="Open Creator Scout", icon="🔎")
 with col2:
-    st.subheader("💰 Creator ROI Planner")
-    st.write(
-        "Answer “how do we make money with this?”: cost per lead, ROI and break-even per creator, "
-        "three scenarios, UTM links for tracking and a compliant campaign brief."
+    card(
+        "🔎",
+        "Creator Scout",
+        "Who to work with",
+        "Real creators found on the web, with a fit score, best brand match, brand-safety flags "
+        "and a first outreach message.",
+        "pages/2_Creator_Scout.py",
+        "Open Creator Scout",
     )
-    st.page_link("pages/2_Creator_ROI_Planner.py", label="Open ROI Planner", icon="💰")
+with col3:
+    card(
+        "💰",
+        "Creator ROI Planner",
+        "How it makes money",
+        "Cost per lead, ROI, break-even and the maximum fee worth paying, plus tracking links "
+        "and a compliant campaign brief.",
+        "pages/3_Creator_ROI_Planner.py",
+        "Open ROI Planner",
+    )
 
-st.divider()
-st.markdown(
-    "**The workflow:** Spot this week's trends → Scout creators → send the shortlist to the ROI Planner → set fees and expected results → "
-    "pay only creators who can break even → track every creator with their own UTM link → "
-    "keep the ones that convert."
+st.write("")
+st.subheader("The workflow")
+steps(
+    [
+        "Spot this week's trends",
+        "Scout creators",
+        "Model the ROI",
+        "Pay only creators who break even",
+        "Track each one with a UTM link",
+        "Keep the ones that convert",
+    ]
 )

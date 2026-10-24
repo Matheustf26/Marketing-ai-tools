@@ -1,14 +1,17 @@
 import pandas as pd
 import streamlit as st
 
-from core.llm import ClaudeError, api_key_sidebar, get_client
+from core.llm import ClaudeError, get_client
 from core.scout import build_research_prompt, research, structure
+from core.ui import header, setup
 
-st.set_page_config(page_title="Creator Scout", page_icon="🔎", layout="wide")
-api_key_sidebar()
-
-st.title("🔎 Creator Scout")
-st.caption("Give it a niche or product. Claude searches the web and returns candidate creators.")
+setup("Creator Scout", "🔎")
+header(
+    "🔎 Creator Scout · Who to work with",
+    "Find the right creators in minutes",
+    "Describe a niche or product. Claude searches the web and returns real creators with a fit score, "
+    "best brand match, brand-safety flags and a first message.",
+)
 
 DEFAULT_BRANDS = """Fast Loan Advance: fast help for unexpected expenses. Direct, upbeat.
 Fast Loan Direct: simple and transparent, compare offers and costs. Clear, no jargon.
@@ -89,6 +92,6 @@ if result:
     )
     if c2.button("Send shortlist to ROI Planner →"):
         st.session_state["roi_creators"] = df[["name", "handle", "platform", "followers"]].to_dict("records")
-        st.switch_page("pages/2_Creator_ROI_Planner.py")
+        st.switch_page("pages/3_Creator_ROI_Planner.py")
 
     st.caption("Follower counts come from public sources and can be out of date. Check each profile before outreach.")

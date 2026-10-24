@@ -1,4 +1,4 @@
-"""Trend Radar: what's working in a social media segment this week, with content ideas.
+"""Creator Radar: what's working in a social media segment this week, with content ideas.
 
 Runs from the Streamlit page on demand, or from the command line on a schedule:
     python -m core.radar --segment "personal finance" --out reports
@@ -114,7 +114,7 @@ def structure(client: anthropic.Anthropic, notes: str) -> RadarReport:
 
 
 def to_markdown(report: RadarReport, segment: str, today: dt.date) -> str:
-    lines = [f"# Trend Radar: {segment}", "", f"_Week of {today.isoformat()}_", "", f"**{report.headline}**", ""]
+    lines = [f"# Creator Radar: {segment}", "", f"_Week of {today.isoformat()}_", "", f"**{report.headline}**", ""]
     for i, t in enumerate(report.trends, 1):
         lines += [f"## {i}. {t.topic}", "", f"**Why now:** {t.why_now}", "", f"**Signal:** {t.signal}", ""]
         for e in t.examples:

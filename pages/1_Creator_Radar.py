@@ -2,16 +2,16 @@ from pathlib import Path
 
 import streamlit as st
 
-from core.llm import api_key_sidebar, get_client
+from core.llm import get_client
 from core.radar import DEFAULT_BRANDS, build_prompt, research, structure, to_markdown, today
+from core.ui import header, setup
 
-st.set_page_config(page_title="Trend Radar", page_icon="📡", layout="wide")
-api_key_sidebar()
-
-st.title("📡 Trend Radar")
-st.caption(
-    "What's getting attention in a segment this week: topics, standout creators and posts, "
-    "and a content idea for each. Runs automatically every Monday and Friday."
+setup("Creator Radar", "📡")
+header(
+    "📡 Creator Radar · What to talk about",
+    "This week's trends, every Monday and Friday",
+    "The topics, creators and formats getting attention in your segment right now, "
+    "with a content idea for each brand.",
 )
 
 REPORTS = Path(__file__).parent.parent / "reports"

@@ -21,7 +21,7 @@ def test_to_markdown_lists_trends_and_sources():
         sources_note="Media coverage of TikTok.",
     )
     md = to_markdown(report, "personal finance", dt.date(2026, 10, 26))
-    assert "# Trend Radar: personal finance" in md
+    assert "# Creator Radar: personal finance" in md
     assert "## 1. Cash stuffing" in md
     assert "[source](https://example.com/a)" in md
     assert "Caution" not in md

@@ -1,4 +1,4 @@
-# Marketing AI Tools
+# Creator Suite: Marketing AI Tools
 
 AI-powered marketing tools built with Claude: creator discovery and influencer ROI planning.
 
@@ -6,7 +6,7 @@ Influencer marketing usually stalls on three questions: **what should we talk ab
 
 ![Home](docs/home.png)
 
-## 📡 Trend Radar
+## 📡 Creator Radar
 
 What's getting attention in a segment this week on Instagram and TikTok: the top topics, why they're trending now, standout creators and posts (with sources and engagement when reported), the formats that are working, and a content idea for each one that fits a regulated financial brand.
 
@@ -70,9 +70,9 @@ Web search has to be enabled for your organization in the [Claude Console](https
 
 ```
 Home.py                         landing page
-pages/1_Creator_Scout.py        creator discovery UI
-pages/2_Creator_ROI_Planner.py  ROI, scenarios, UTM links, brief
-pages/3_Trend_Radar.py          weekly trends and content ideas
+pages/1_Creator_Radar.py        weekly trends and content ideas
+pages/2_Creator_Scout.py        creator discovery UI
+pages/3_Creator_ROI_Planner.py  ROI, scenarios, UTM links, brief
 core/scout.py                   web research + structured extraction
 core/roi.py                     ROI math and UTM builder (pure functions)
 core/brief.py                   campaign brief prompt

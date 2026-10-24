@@ -1,0 +1,16 @@
+[theme]
+base = "light"
+primaryColor = "#5B3DF5"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F4FC"
+textColor = "#1B1A2E"
+linkColor = "#5B3DF5"
+borderColor = "#E7E5F3"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap, sans-serif"
+headingFont = "Plus Jakarta Sans:https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap, sans-serif"
+headingFontWeights = [800, 700, 700]
+baseRadius = "12px"
+showWidgetBorder = true
+
+[theme.sidebar]
+backgroundColor = "#F7F6FD"
