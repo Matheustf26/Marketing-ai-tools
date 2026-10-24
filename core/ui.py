@@ -39,29 +39,26 @@ CSS = """
 def setup(page_title: str, icon: str) -> None:
     """Call first on every page."""
     st.set_page_config(page_title=f"{page_title} · Creator Suite", page_icon=icon, layout="wide")
-    st.markdown(CSS, unsafe_allow_html=True)
-    st.sidebar.markdown(
+    st.html(CSS)
+    st.sidebar.html(
         '<div class="brand">Creator <span>Suite</span></div>'
-        '<div class="brand-sub">Influencer marketing tools built with Claude</div>',
-        unsafe_allow_html=True,
+        '<div class="brand-sub">Influencer marketing tools built with Claude</div>'
     )
     api_key_sidebar()
 
 
 def header(eyebrow: str, title: str, subtitle: str) -> None:
-    st.markdown(
+    st.html(
         f'<div class="hero"><div class="eyebrow">{eyebrow}</div>'
-        f'<div class="title">{title}</div><p class="subtitle">{subtitle}</p></div>',
-        unsafe_allow_html=True,
+        f'<div class="title">{title}</div><p class="subtitle">{subtitle}</p></div>'
     )
 
 
 def card(icon: str, title: str, tag: str, text: str, page: str, link_label: str) -> None:
     with st.container(border=True):
-        st.markdown(
+        st.html(
             f'<div class="card-icon">{icon}</div><div class="card-title">{title}</div>'
-            f'<div class="card-tag">{tag}</div><div class="card-text">{text}</div>',
-            unsafe_allow_html=True,
+            f'<div class="card-tag">{tag}</div><div class="card-text">{text}</div>'
         )
         st.page_link(page, label=link_label, icon=":material/arrow_forward:")
 
@@ -72,4 +69,4 @@ def steps(items: list[str]) -> None:
         if i:
             parts.append('<span class="arrow">→</span>')
         parts.append(f'<span class="step">{item}</span>')
-    st.markdown(f'<div class="steps">{"".join(parts)}</div>', unsafe_allow_html=True)
+    st.html(f'<div class="steps">{"".join(parts)}</div>')
