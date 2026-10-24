@@ -21,16 +21,16 @@ def _configured_key() -> str | None:
 
 
 def get_api_key() -> str | None:
-    """Use the configured key, or the one typed in the sidebar."""
+    """Use the configured key, or the one typed in the menu."""
     return _configured_key() or st.session_state.get("api_key") or None
 
 
-def api_key_sidebar() -> None:
-    """Show a key field in the sidebar only when no key is configured."""
+def api_key_menu() -> None:
+    """Show the key status in the menu, and a key field only when no key is configured."""
     if _configured_key():
-        st.sidebar.success("Claude API key configured")
+        st.caption(":material/check_circle: Claude API key configured")
         return
-    st.sidebar.text_input(
+    st.text_input(
         "Anthropic API key",
         type="password",
         key="api_key",
@@ -41,7 +41,7 @@ def api_key_sidebar() -> None:
 def get_client() -> anthropic.Anthropic:
     key = get_api_key()
     if not key:
-        st.error("Add your Anthropic API key in the sidebar to run this tool.")
+        st.error("Add your Anthropic API key in the menu (top right) to run this tool.")
         st.stop()
     return anthropic.Anthropic(api_key=key)
 

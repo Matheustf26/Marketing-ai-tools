@@ -4,15 +4,9 @@ import streamlit as st
 
 from core.llm import get_client
 from core.radar import DEFAULT_BRANDS, build_prompt, research, structure, to_markdown, today
-from core.ui import header, setup
+from core.ui import header
 
-setup("Creator Radar", "📡")
-header(
-    "📡 Creator Radar · What to talk about",
-    "This week's trends, every Monday and Friday",
-    "The topics, creators and formats getting attention in your segment right now, "
-    "with a content idea for each brand.",
-)
+header("radar", "Creator Radar", "What your segment is talking about this week on Instagram and TikTok, with a content idea for each brand.")
 
 REPORTS = Path(__file__).parent.parent / "reports"
 
@@ -34,7 +28,7 @@ with tab_run:
         prompt = build_prompt(segment, platforms, audience, brands, count, day)
         try:
             with st.status("Scanning the web for this week's trends…", expanded=True) as status:
-                notes = research(client, prompt, on_progress=lambda q: st.write(f"🔍 {q}"))
+                notes = research(client, prompt, on_progress=lambda q: st.markdown(f":material/search: {q}"))
                 status.update(label="Writing the report…")
                 report = structure(client, notes)
                 status.update(label=f"Found {len(report.trends)} trends", state="complete", expanded=False)

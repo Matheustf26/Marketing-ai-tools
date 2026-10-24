@@ -8,10 +8,12 @@ from streamlit.testing.v1 import AppTest
 from core.scout import Creator, ScoutResult
 
 
-def test_home_and_roi_render():
-    for page in ["Home.py", "pages/3_Creator_ROI_Planner.py", "pages/1_Creator_Radar.py"]:
-        at = AppTest.from_file("../" + page, default_timeout=30).run()
-        assert not at.exception, at.exception
+def test_every_page_renders():
+    at = AppTest.from_file("../Home.py", default_timeout=30).run()
+    assert not at.exception, at.exception
+    for page in ["views/radar.py", "views/scout.py", "views/roi.py"]:
+        at.switch_page(page).run()
+        assert not at.exception, (page, at.exception)
 
 
 def test_scout_flow():
@@ -51,9 +53,10 @@ def test_scout_flow():
         )
     )
     with patch("anthropic.Anthropic", return_value=fake):
-        at = AppTest.from_file("../pages/2_Creator_Scout.py", default_timeout=30)
+        at = AppTest.from_file("../Home.py", default_timeout=30)
         at.session_state["api_key"] = "test"
         at.run()
+        at.switch_page("views/scout.py").run()
         at.button[0].click().run()
         assert not at.exception, at.exception
         assert at.session_state["scout_result"].creators[0].handle == "@janemoney"

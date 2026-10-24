@@ -1,72 +1,115 @@
-"""Shared look: page setup, header banner, cards and sidebar."""
+"""Shared look: Fast Loan Advance branding, top bar with menu, page banner and footer.
+
+Design rules live in .claude/skills/fla-brand-ui/SKILL.md.
+"""
+
+import base64
 
 import streamlit as st
 
-from core.llm import api_key_sidebar
+from core.llm import api_key_menu
+
+BRAND = "Fast Loan Advance"
+LOGO = "https://www.fastloanadvance.com/images/fla-logo.svg"
+
+# Inline stroke icons, so they look the same in every browser.
+ICONS = {
+    "radar": '<path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/>'
+    '<path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/>'
+    '<circle cx="12" cy="12" r="2"/><path d="m13.41 10.59 5.66-5.66"/>',
+    "scout": '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><circle cx="11" cy="9.5" r="2.5"/>'
+    '<path d="M7 15a4.5 4.5 0 0 1 8 0"/>',
+    "roi": '<circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/>',
+}
 
 CSS = """
 <style>
-.block-container {padding-top: 3.6rem; max-width: 1180px;}
-.hero {
-  background: linear-gradient(120deg, #5B3DF5 0%, #8B5CF6 55%, #F472B6 100%);
-  border-radius: 20px; padding: 28px 32px; margin-bottom: 1.4rem; color: #fff;
-  box-shadow: 0 12px 32px -18px rgba(91, 61, 245, .55);
+:root {--teal: #043D46; --mist: #EEF4F3; --line: #D5E2E0; --slate: #4E6466; --signal: #18B37E;}
+.block-container {padding-top: 1.6rem; max-width: 1120px;}
+header[data-testid="stHeader"] {display: none;}
+.topbar {display: flex; align-items: center; gap: 14px; min-height: 44px;}
+.topbar img {height: 32px; width: auto;}
+.topbar .sep {width: 1px; height: 24px; background: var(--line);}
+.topbar .suite {font-weight: 700; color: var(--teal); font-size: 1rem;}
+.band {background: var(--teal); color: #fff; border-radius: 20px; padding: 28px 32px; margin: 4px 0 1.6rem;}
+.band-row {display: flex; gap: 20px; align-items: center;}
+.band-icon {flex: 0 0 56px; height: 56px; border-radius: 16px; border: 1px solid rgba(255,255,255,.25);
+  display: flex; align-items: center; justify-content: center;}
+.band-icon img {width: 28px; height: 28px;}
+.band h1 {color: #fff; font-size: 2.1rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.12; margin: 0 0 6px; padding: 0;}
+.band p {color: rgba(255,255,255,.82); font-size: 1.02rem; margin: 0; max-width: 680px;}
+.chain {display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 26px; border-top: 1px solid rgba(255,255,255,.2);}
+.chain div {padding: 16px 16px 0 0;}
+.chain b {display: block; font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em;}
+.chain span {color: rgba(255,255,255,.7); font-size: .88rem;}
+.chain .win b {color: #7BE3BC;}
+.tool {display: flex; gap: 18px; align-items: flex-start;}
+.tool-icon {flex: 0 0 48px; height: 48px; border-radius: 14px; background: var(--mist); display: flex;
+  align-items: center; justify-content: center;}
+.tool-icon img {width: 24px; height: 24px;}
+.tool h3 {font-size: 1.15rem; font-weight: 800; color: var(--teal); margin: 0 0 2px; padding: 0;}
+.tool .q {color: var(--signal); font-weight: 700; font-size: .92rem; margin-bottom: 4px;}
+.tool p {color: var(--slate); margin: 0; line-height: 1.5;}
+[data-testid="stMetric"] {background: var(--mist); border-radius: 14px; padding: 14px 18px; min-height: 120px;}
+[data-testid="stMetricValue"] {font-weight: 800; color: var(--teal);}
+.footer {margin-top: 3rem; padding-top: 14px; border-top: 1px solid var(--line); color: var(--slate); font-size: .82rem;}
+@media (max-width: 640px) {
+  .band {padding: 22px;} .band h1 {font-size: 1.55rem;} .band-icon, .topbar .sep, .topbar .suite {display: none;}
+  .chain {grid-template-columns: repeat(2, 1fr);}
 }
-.hero .eyebrow {font-size: .78rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; opacity: .85;}
-.hero .title {font-family: "Plus Jakarta Sans", sans-serif; font-size: 2.3rem; font-weight: 800; line-height: 1.15; margin: 6px 0 8px;}
-.hero .subtitle {font-size: 1.05rem; opacity: .92; max-width: 760px; margin: 0;}
-.card-icon {
-  width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
-  font-size: 1.4rem; background: #EFEBFF; margin-bottom: 10px;
-}
-.card-title {font-family: "Plus Jakarta Sans", sans-serif; font-weight: 700; font-size: 1.15rem; margin-bottom: 4px;}
-.card-tag {color: #5B3DF5; font-weight: 600; font-size: .85rem; margin-bottom: 8px;}
-.card-text {color: #55536B; font-size: .95rem; line-height: 1.5; min-height: 96px;}
-.steps {display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 6px;}
-.step {background: #F5F4FC; border: 1px solid #E7E5F3; border-radius: 999px; padding: 7px 14px; font-size: .9rem; font-weight: 500;}
-.arrow {color: #A5A1C4; font-weight: 700;}
-[data-testid="stMetric"] {
-  background: #F5F4FC; border: 1px solid #E7E5F3; border-radius: 14px; padding: 14px 18px; min-height: 128px;
-}
-[data-testid="stMetricValue"] {font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800;}
-.brand {font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; font-size: 1.25rem; color: #1B1A2E;}
-.brand span {color: #5B3DF5;}
-.brand-sub {color: #6E6B88; font-size: .85rem; margin-bottom: 4px;}
 </style>
 """
 
 
-def setup(page_title: str, icon: str) -> None:
-    """Call first on every page."""
-    st.set_page_config(page_title=f"{page_title} · Creator Suite", page_icon=icon, layout="wide")
+def icon(name: str, color: str = "#043D46") -> str:
+    """An <img> with the SVG inlined as data, since st.html strips raw <svg> tags."""
+    svg = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" '
+        f'stroke-linecap="round" stroke-linejoin="round">{ICONS[name]}</svg>'
+    )
+    return f'<img alt="" src="data:image/svg+xml;base64,{base64.b64encode(svg.encode()).decode()}">'
+
+
+
+# path, title, menu icon, url, what it answers
+PAGES = [
+    ("views/home.py", "Home", ":material/home:", "", "Overview"),
+    ("views/radar.py", "Creator Radar", ":material/radar:", "creator-radar", "What should we talk about?"),
+    ("views/scout.py", "Creator Scout", ":material/person_search:", "creator-scout", "Who should we work with?"),
+    ("views/roi.py", "Creator ROI Planner", ":material/payments:", "creator-roi-planner", "Does it make money?"),
+]
+
+
+def navigation():
+    """Set up the app shell (styles, top bar, menu) and return the page to run. Called once, from Home.py."""
+    st.set_page_config(page_icon=":material/bolt:", layout="wide", initial_sidebar_state="collapsed")
+    pages = [st.Page(path, title=title, icon=ic, url_path=url or None, default=not url) for path, title, ic, url, _ in PAGES]
+    current = st.navigation(pages, position="hidden")
     st.html(CSS)
-    st.sidebar.html(
-        '<div class="brand">Creator <span>Suite</span></div>'
-        '<div class="brand-sub">Influencer marketing tools built with Claude</div>'
-    )
-    api_key_sidebar()
 
-
-def header(eyebrow: str, title: str, subtitle: str) -> None:
-    st.html(
-        f'<div class="hero"><div class="eyebrow">{eyebrow}</div>'
-        f'<div class="title">{title}</div><p class="subtitle">{subtitle}</p></div>'
-    )
-
-
-def card(icon: str, title: str, tag: str, text: str, page: str, link_label: str) -> None:
-    with st.container(border=True):
+    left, right = st.columns([5, 1], vertical_alignment="center")
+    with left:
         st.html(
-            f'<div class="card-icon">{icon}</div><div class="card-title">{title}</div>'
-            f'<div class="card-tag">{tag}</div><div class="card-text">{text}</div>'
+            f'<div class="topbar"><img src="{LOGO}" alt="{BRAND}"><span class="sep"></span>'
+            '<span class="suite">Creator Suite</span></div>'
         )
-        st.page_link(page, label=link_label, icon=":material/arrow_forward:")
+    with right, st.popover("Menu", icon=":material/menu:", width="stretch"):
+        for page, (*_, question) in zip(pages, PAGES):
+            st.page_link(page, help=question, width="stretch")
+        st.divider()
+        api_key_menu()
+    return current
 
 
-def steps(items: list[str]) -> None:
-    parts = []
-    for i, item in enumerate(items):
-        if i:
-            parts.append('<span class="arrow">→</span>')
-        parts.append(f'<span class="step">{item}</span>')
-    st.html(f'<div class="steps">{"".join(parts)}</div>')
+def header(icon_name: str, title: str, subtitle: str) -> None:
+    st.html(
+        f'<div class="band"><div class="band-row"><div class="band-icon">{icon(icon_name, "#FFFFFF")}</div>'
+        f"<div><h1>{title}</h1><p>{subtitle}</p></div></div></div>"
+    )
+
+
+def footer() -> None:
+    st.html(
+        f'<div class="footer">Creator Suite is a concept demo for {BRAND}, built by Matheus Falcão with Claude. '
+        "Internal marketing tool, not a customer-facing page.</div>"
+    )

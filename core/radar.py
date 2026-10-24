@@ -73,7 +73,9 @@ def research(client: anthropic.Anthropic, prompt: str, on_progress=None) -> str:
     def show_search(event):
         if on_progress and event.type == "content_block_stop" and event.content_block.type == "server_tool_use":
             query = event.content_block.input
-            on_progress(query.get("query", "") if isinstance(query, dict) else "")
+            text = query.get("query", "") if isinstance(query, dict) else ""
+            if text:  # other server tools (e.g. result filtering) have no query
+                on_progress(text)
 
     response = None
     for _ in range(MAX_CONTINUATIONS + 1):

@@ -3,15 +3,9 @@ import streamlit as st
 
 from core.llm import ClaudeError, get_client
 from core.scout import build_research_prompt, research, structure
-from core.ui import header, setup
+from core.ui import header
 
-setup("Creator Scout", "🔎")
-header(
-    "🔎 Creator Scout · Who to work with",
-    "Find the right creators in minutes",
-    "Describe a niche or product. Claude searches the web and returns real creators with a fit score, "
-    "best brand match, brand-safety flags and a first message.",
-)
+header("scout", "Creator Scout", "Real creators found on the web, scored for fit and brand safety, with a first message ready to send.")
 
 DEFAULT_BRANDS = """Fast Loan Advance: fast help for unexpected expenses. Direct, upbeat.
 Fast Loan Direct: simple and transparent, compare offers and costs. Clear, no jargon.
@@ -41,7 +35,7 @@ if submitted:
     prompt = build_research_prompt(niche, platforms, country, size, brands, count)
     try:
         with st.status("Searching the web…", expanded=True) as status:
-            notes = research(client, prompt, on_progress=lambda q: st.write(f"🔍 {q}"))
+            notes = research(client, prompt, on_progress=lambda q: st.markdown(f":material/search: {q}"))
             status.update(label="Organizing results…")
             result = structure(client, notes)
             status.update(label=f"Found {len(result.creators)} creators", state="complete", expanded=False)
@@ -78,7 +72,7 @@ if result:
 
     st.subheader("Details and outreach")
     for _, row in df.iterrows():
-        with st.expander(f"{row['name']} ({row['handle'] or row['platform']}) · fit {row['fit_score']}/10"):
+        with st.expander(f"{row['name']} ({row['handle'] or row['platform']}), fit {row['fit_score']}/10"):
             st.write(f"**What they post:** {row['content_summary']}")
             st.write(f"**Why they fit:** {row['audience_fit']}")
             st.write(f"**Best brand:** {row['best_brand']}")
@@ -90,8 +84,8 @@ if result:
     c1.download_button(
         "Download CSV", df.to_csv(index=False).encode(), file_name="creators.csv", mime="text/csv"
     )
-    if c2.button("Send shortlist to ROI Planner →"):
+    if c2.button("Send shortlist to ROI Planner"):
         st.session_state["roi_creators"] = df[["name", "handle", "platform", "followers"]].to_dict("records")
-        st.switch_page("pages/3_Creator_ROI_Planner.py")
+        st.switch_page("views/roi.py")
 
     st.caption("Follower counts come from public sources and can be out of date. Check each profile before outreach.")

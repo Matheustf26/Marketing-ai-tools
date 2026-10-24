@@ -1,6 +1,6 @@
 # Creator Suite: Marketing AI Tools
 
-AI-powered marketing tools built with Claude: creator discovery and influencer ROI planning.
+Influencer marketing tools for Fast Loan Advance, built with Claude: weekly trends, creator discovery and ROI planning.
 
 Influencer marketing usually stalls on three questions: **what should we talk about?**, **who should we work with?** and **how does this make money?** These three tools answer them, and they're built to work together.
 
@@ -51,7 +51,7 @@ pip install -r requirements.txt
 streamlit run Home.py
 ```
 
-Paste your Anthropic API key in the sidebar, or set it once in `.streamlit/secrets.toml`:
+Paste your Anthropic API key in the menu (top right), or set it once in `.streamlit/secrets.toml`:
 
 ```toml
 ANTHROPIC_API_KEY = "sk-ant-..."
@@ -69,19 +69,30 @@ Web search has to be enabled for your organization in the [Claude Console](https
 ## Project layout
 
 ```
-Home.py                         landing page
-pages/1_Creator_Radar.py        weekly trends and content ideas
-pages/2_Creator_Scout.py        creator discovery UI
-pages/3_Creator_ROI_Planner.py  ROI, scenarios, UTM links, brief
+Home.py                         entry point: brand shell, menu, runs the chosen page
+views/home.py                   overview and the money chain
+views/radar.py                  weekly trends and content ideas
+views/scout.py                  creator discovery
+views/roi.py                    ROI, scenarios, UTM links, brief
+core/ui.py                      Fast Loan Advance look: top bar, menu, page bands, icons
 core/scout.py                   web research + structured extraction
 core/roi.py                     ROI math and UTM builder (pure functions)
 core/brief.py                   campaign brief prompt
 core/radar.py                   trend research + report (also a CLI for the schedule)
-reports/                        weekly trend reports written by the GitHub Action
-.github/workflows/              Monday and Friday schedule
 core/llm.py                     Claude client, API key handling
+reports/                        radar reports written by the GitHub Action
+reports/briefs/                 one-page leadership briefs
+.github/workflows/              Monday and Friday schedule
+.claude/skills/                 Claude Code skills for this project
 tests/                          unit tests and page smoke tests
 ```
+
+## Claude skills
+
+The repo ships two skills that Claude Code picks up automatically when it works in this folder:
+
+- **`fla-brand-ui`**: the Fast Loan Advance design rules (colors, type, layout, menu, icons), written with Anthropic's [frontend-design](https://github.com/anthropics/skills/tree/main/skills/frontend-design) skill. Every UI change follows it.
+- **`creator-weekly-brief`**: turns the latest radar report into a one-page leadership brief with three post ideas, the ROI of one sponsored post, next steps and a legal-review list. Example: [`reports/briefs/2026-10-24-weekly-brief.md`](reports/briefs/2026-10-24-weekly-brief.md).
 
 Run the tests with `pytest`.
 

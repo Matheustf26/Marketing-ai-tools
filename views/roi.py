@@ -4,15 +4,9 @@ import streamlit as st
 from core.brief import write_brief
 from core.llm import ClaudeError, get_client
 from core.roi import Plan, project, scenarios, utm_link
-from core.ui import header, setup
+from core.ui import header
 
-setup("Creator ROI Planner", "💰")
-header(
-    "💰 Creator ROI Planner · How it makes money",
-    "Know what a creator is worth before you pay",
-    "Every sponsored post is a small lead-gen campaign: views → clicks → leads → revenue. "
-    "Model it, set the maximum fee, track every creator.",
-)
+header("roi", "Creator ROI Planner", "Model views, clicks, leads and revenue for each creator, and know the most a post is worth before you pay.")
 
 
 def money(x):
