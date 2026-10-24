@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 from core.llm import check_refusal, parse, stream, text_of
 
-WEB_SEARCH = {"type": "web_search_20260209", "name": "web_search", "max_uses": 15}
+WEB_SEARCH = {"type": "web_search_20260209", "name": "web_search", "max_uses": 8}
 MAX_CONTINUATIONS = 5
 
 

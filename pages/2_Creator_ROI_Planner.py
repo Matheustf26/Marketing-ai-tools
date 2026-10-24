@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from core.brief import write_brief
-from core.llm import api_key_sidebar, get_client
+from core.llm import ClaudeError, api_key_sidebar, get_client
 from core.roi import Plan, project, scenarios, utm_link
 
 st.set_page_config(page_title="Creator ROI Planner", page_icon="💰", layout="wide")
@@ -140,8 +140,11 @@ with tab_brief:
     creators = st.text_input("Creators", value="3 micro creators on TikTok and Instagram, personal finance niche")
     if st.button("Write brief", type="primary"):
         client = get_client()
-        with st.spinner("Writing the brief…"):
-            st.session_state["brief"] = write_brief(client, brand, product, goal, creators, f"Campaign: {campaign}.")
+        try:
+            with st.spinner("Writing the brief…"):
+                st.session_state["brief"] = write_brief(client, brand, product, goal, creators, f"Campaign: {campaign}.")
+        except ClaudeError as e:
+            st.error(str(e))
     if st.session_state.get("brief"):
         st.markdown(st.session_state["brief"])
         st.download_button("Download brief (.md)", st.session_state["brief"], "campaign-brief.md")

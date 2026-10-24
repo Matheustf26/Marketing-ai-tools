@@ -51,14 +51,35 @@ def text_of(message) -> str:
     return "\n".join(b.text for b in message.content if b.type == "text").strip()
 
 
+class ClaudeError(RuntimeError):
+    """An API problem the person running the app can fix, with a plain explanation."""
+
+
+def _explain(e: anthropic.APIStatusError) -> ClaudeError | None:
+    text = str(e).lower()
+    if "credit balance" in text:
+        return ClaudeError("The Claude account is out of credits. Add credits at console.anthropic.com → Billing.")
+    if isinstance(e, anthropic.AuthenticationError):
+        return ClaudeError("The Claude API key is invalid or was deleted. Update ANTHROPIC_API_KEY in the app secrets.")
+    if isinstance(e, anthropic.RateLimitError):
+        return ClaudeError("Too many requests right now. Wait a minute and try again.")
+    return None
+
+
 def _with_fallback(method, **kwargs):
     """Call with server-side fallbacks; retry without them if the account does not support the beta."""
     try:
-        return method(betas=BETAS, fallbacks=FALLBACKS, **kwargs)
-    except anthropic.BadRequestError as e:
-        if "fallback" not in str(e).lower():
+        try:
+            return method(betas=BETAS, fallbacks=FALLBACKS, **kwargs)
+        except anthropic.BadRequestError as e:
+            if "fallback" not in str(e).lower():
+                raise
+            return method(**kwargs)
+    except anthropic.APIStatusError as e:
+        friendly = _explain(e)
+        if friendly is None:
             raise
-        return method(**kwargs)
+        raise friendly from e
 
 
 def create(client: anthropic.Anthropic, **kwargs):

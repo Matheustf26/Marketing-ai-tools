@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-from core.llm import api_key_sidebar, get_client
+from core.llm import ClaudeError, api_key_sidebar, get_client
 from core.scout import build_research_prompt, research, structure
 
 st.set_page_config(page_title="Creator Scout", page_icon="🔎", layout="wide")
@@ -36,11 +36,15 @@ with st.form("scout"):
 if submitted:
     client = get_client()
     prompt = build_research_prompt(niche, platforms, country, size, brands, count)
-    with st.status("Searching the web…", expanded=True) as status:
-        notes = research(client, prompt, on_progress=lambda q: st.write(f"🔍 {q}"))
-        status.update(label="Organizing results…")
-        result = structure(client, notes)
-        status.update(label=f"Found {len(result.creators)} creators", state="complete", expanded=False)
+    try:
+        with st.status("Searching the web…", expanded=True) as status:
+            notes = research(client, prompt, on_progress=lambda q: st.write(f"🔍 {q}"))
+            status.update(label="Organizing results…")
+            result = structure(client, notes)
+            status.update(label=f"Found {len(result.creators)} creators", state="complete", expanded=False)
+    except ClaudeError as e:
+        st.error(str(e))
+        st.stop()
     st.session_state["scout_result"] = result
 
 result = st.session_state.get("scout_result")
