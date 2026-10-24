@@ -7,11 +7,18 @@ api_key_sidebar()
 
 st.title("Marketing AI Tools")
 st.write(
-    "Two tools built with Claude to turn influencer marketing into a measurable acquisition channel: "
-    "find the right creators, then prove the money before you pay them."
+    "Three tools built with Claude to turn influencer marketing into a measurable acquisition channel: "
+    "know what's trending, find the right creators, then prove the money before you pay them."
 )
 
-col1, col2 = st.columns(2)
+col0, col1, col2 = st.columns(3)
+with col0:
+    st.subheader("📡 Trend Radar")
+    st.write(
+        "What's getting attention in your segment this week: topics, standout creators and posts, "
+        "and a content idea for each brand. A new report every Monday and Friday."
+    )
+    st.page_link("pages/3_Trend_Radar.py", label="Open Trend Radar", icon="📡")
 with col1:
     st.subheader("🔎 Creator Scout")
     st.write(
@@ -29,7 +36,7 @@ with col2:
 
 st.divider()
 st.markdown(
-    "**The workflow:** Scout creators → send the shortlist to the ROI Planner → set fees and expected results → "
+    "**The workflow:** Spot this week's trends → Scout creators → send the shortlist to the ROI Planner → set fees and expected results → "
     "pay only creators who can break even → track every creator with their own UTM link → "
     "keep the ones that convert."
 )

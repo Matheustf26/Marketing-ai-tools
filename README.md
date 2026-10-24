@@ -2,9 +2,20 @@
 
 AI-powered marketing tools built with Claude: creator discovery and influencer ROI planning.
 
-Influencer marketing usually stalls on two questions: **who should we work with?** and **how does this make money?** These two tools answer both, and they're built to work together.
+Influencer marketing usually stalls on three questions: **what should we talk about?**, **who should we work with?** and **how does this make money?** These three tools answer them, and they're built to work together.
 
 ![Home](docs/home.png)
+
+## 📡 Trend Radar
+
+What's getting attention in a segment this week on Instagram and TikTok: the top topics, why they're trending now, standout creators and posts (with sources and engagement when reported), the formats that are working, and a content idea for each one that fits a regulated financial brand.
+
+- **On demand:** run a scan from the app for any segment.
+- **Every Monday and Friday:** a GitHub Action (`.github/workflows/trend-radar.yml`) runs the radar, saves the report in `reports/`, and the app shows it under **Weekly reports**.
+
+Instagram and TikTok can't be read directly, so Claude uses public pages that report on them (media coverage, trend roundups, platform trend pages, Google Trends). It only reports numbers it found.
+
+To turn on the schedule, add the API key in the repo: **Settings → Secrets and variables → Actions → New repository secret**, name `ANTHROPIC_API_KEY`. You can also run it by hand from the **Actions** tab.
 
 ## 🔎 Creator Scout
 
@@ -61,9 +72,13 @@ Web search has to be enabled for your organization in the [Claude Console](https
 Home.py                         landing page
 pages/1_Creator_Scout.py        creator discovery UI
 pages/2_Creator_ROI_Planner.py  ROI, scenarios, UTM links, brief
+pages/3_Trend_Radar.py          weekly trends and content ideas
 core/scout.py                   web research + structured extraction
 core/roi.py                     ROI math and UTM builder (pure functions)
 core/brief.py                   campaign brief prompt
+core/radar.py                   trend research + report (also a CLI for the schedule)
+reports/                        weekly trend reports written by the GitHub Action
+.github/workflows/              Monday and Friday schedule
 core/llm.py                     Claude client, API key handling
 tests/                          unit tests and page smoke tests
 ```

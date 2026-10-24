@@ -9,7 +9,7 @@ from core.scout import Creator, ScoutResult
 
 
 def test_home_and_roi_render():
-    for page in ["Home.py", "pages/2_Creator_ROI_Planner.py"]:
+    for page in ["Home.py", "pages/2_Creator_ROI_Planner.py", "pages/3_Trend_Radar.py"]:
         at = AppTest.from_file("../" + page, default_timeout=30).run()
         assert not at.exception, at.exception
 
