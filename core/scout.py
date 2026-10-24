@@ -39,6 +39,8 @@ Rules:
 - Only list creators you actually found in search results. Never invent names, handles, URLs or numbers.
 - Prefer lists, articles and directories that name creators in the niche (e.g. "top personal finance TikTokers"), then confirm each profile.
 - Follower counts change: report what the source says and say "unknown" when you did not see one.
+  For promising creators, run one quick search on their handle (e.g. "@handle tiktok followers") to find a count
+  in articles, media kits or creator directories before giving up.
 - Flag brand-safety risks honestly: get-rich-quick claims, controversies, promoting competitors, signs of fake followers.
 - In regulated categories (finance, health), note anything that could create compliance risk."""
 

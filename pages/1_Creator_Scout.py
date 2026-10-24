@@ -56,6 +56,12 @@ if result:
     st.dataframe(
         df[["name", "handle", "platform", "followers", "fit_score", "best_brand", "brand_safety_flags", "profile_url"]],
         column_config={
+            "name": "Name",
+            "handle": "Handle",
+            "platform": "Platform",
+            "followers": "Followers",
+            "best_brand": "Best brand",
+            "brand_safety_flags": st.column_config.TextColumn("Brand safety", width="large"),
             "profile_url": st.column_config.LinkColumn("Profile"),
             "fit_score": st.column_config.ProgressColumn("Fit", min_value=0, max_value=10, format="%d"),
         },
