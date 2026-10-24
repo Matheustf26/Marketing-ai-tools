@@ -1,4 +1,4 @@
-# Trend Radar: personal finance, budgeting, credit and money tips
+# Creator Radar: personal finance, budgeting, credit and money tips
 
 _Week of 2026-10-24_
 
