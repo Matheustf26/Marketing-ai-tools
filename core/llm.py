@@ -65,6 +65,19 @@ def create(client: anthropic.Anthropic, **kwargs):
     return _with_fallback(client.beta.messages.create, model=MODEL, **kwargs)
 
 
+def stream(client: anthropic.Anthropic, on_event=None, **kwargs):
+    """Stream a request, passing each event to on_event, and return the final message."""
+
+    def run(**kw):
+        with client.beta.messages.stream(model=MODEL, **kw) as events:
+            for event in events:
+                if on_event:
+                    on_event(event)
+            return events.get_final_message()
+
+    return _with_fallback(run, **kwargs)
+
+
 def parse(client: anthropic.Anthropic, **kwargs):
     return _with_fallback(client.beta.messages.parse, model=MODEL, **kwargs)
 

@@ -23,10 +23,26 @@ def test_scout_flow():
     )
     search = SimpleNamespace(type="server_tool_use", input={"query": "personal finance tiktok creators"})
     text = SimpleNamespace(type="text", text="notes")
+    final = SimpleNamespace(content=[search, text], stop_reason="end_turn")
+    events = [SimpleNamespace(type="content_block_stop", content_block=search)]
+
+    class FakeStream:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def __iter__(self):
+            return iter(events)
+
+        def get_final_message(self):
+            return final
+
     fake = SimpleNamespace(
         beta=SimpleNamespace(
             messages=SimpleNamespace(
-                create=lambda **kw: SimpleNamespace(content=[search, text], stop_reason="end_turn"),
+                stream=lambda **kw: FakeStream(),
                 parse=lambda **kw: SimpleNamespace(
                     parsed_output=ScoutResult(search_summary="Found on lists.", creators=[creator]),
                     stop_reason="end_turn",
@@ -41,3 +57,4 @@ def test_scout_flow():
         at.button[0].click().run()
         assert not at.exception, at.exception
         assert at.session_state["scout_result"].creators[0].handle == "@janemoney"
+        assert any("personal finance tiktok creators" in m.value for m in at.markdown)

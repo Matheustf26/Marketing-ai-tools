@@ -5,7 +5,7 @@ from typing import Literal
 import anthropic
 from pydantic import BaseModel, Field
 
-from core.llm import check_refusal, create, parse, text_of
+from core.llm import check_refusal, parse, stream, text_of
 
 WEB_SEARCH = {"type": "web_search_20260209", "name": "web_search", "max_uses": 15}
 MAX_CONTINUATIONS = 5
@@ -62,10 +62,18 @@ Then write a short, personal first outreach DM for each one."""
 def research(client: anthropic.Anthropic, prompt: str, on_progress=None) -> str:
     """Run the web-search research turn, resuming if the server pauses a long turn."""
     messages = [{"role": "user", "content": prompt}]
+
+    def show_search(event):
+        # Each finished web search block carries its query: show it as it happens.
+        if on_progress and event.type == "content_block_stop" and event.content_block.type == "server_tool_use":
+            query = event.content_block.input
+            on_progress(query.get("query", "") if isinstance(query, dict) else "")
+
     response = None
     for _ in range(MAX_CONTINUATIONS + 1):
-        response = create(
+        response = stream(
             client,
+            on_event=show_search,
             max_tokens=16000,
             system=RESEARCH_SYSTEM,
             tools=[WEB_SEARCH],
@@ -73,10 +81,6 @@ def research(client: anthropic.Anthropic, prompt: str, on_progress=None) -> str:
             messages=messages,
         )
         check_refusal(response)
-        if on_progress:
-            searches = [b.input.get("query", "") for b in response.content if b.type == "server_tool_use"]
-            for query in searches:
-                on_progress(query)
         if response.stop_reason != "pause_turn":
             break
         messages.append({"role": "assistant", "content": response.content})
