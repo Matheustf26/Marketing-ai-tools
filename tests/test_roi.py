@@ -30,3 +30,17 @@ def test_utm_link_keeps_query():
     assert "utm_source=tiktok" in link
     assert "utm_campaign=creators-q4" in link
     assert "utm_content=jane-doe" in link
+
+
+def test_run_cost_counts_tokens_and_searches():
+    from types import SimpleNamespace
+
+    from core.llm import _track, reset_cost, run_cost
+
+    reset_cost()
+    usage = SimpleNamespace(
+        input_tokens=100_000, output_tokens=10_000, cache_read_input_tokens=0, cache_creation_input_tokens=0,
+        server_tool_use=SimpleNamespace(web_search_requests=8),
+    )
+    _track(SimpleNamespace(usage=usage))
+    assert round(run_cost(), 2) == 0.68  # $0.40 input + $0.20 output + $0.08 searches

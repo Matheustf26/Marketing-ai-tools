@@ -2,7 +2,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from core.llm import get_client
+from core.llm import get_client, reset_cost, run_cost
 from core.radar import DEFAULT_BRANDS, build_prompt, research, structure, to_markdown, today
 from core.ui import header
 
@@ -26,6 +26,7 @@ with tab_run:
         client = get_client()
         day = today()
         prompt = build_prompt(segment, platforms, audience, brands, count, day)
+        reset_cost()
         try:
             with st.status("Scanning the web for this week's trends…", expanded=True) as status:
                 notes = research(client, prompt, on_progress=lambda q: st.markdown(f":material/search: {q}"))
@@ -36,11 +37,15 @@ with tab_run:
             st.error(str(e))
             st.stop()
         st.session_state["radar_md"] = to_markdown(report, segment, day)
+        st.session_state["radar_cost"] = run_cost()
 
     if st.session_state.get("radar_md"):
         st.markdown(st.session_state["radar_md"])
         st.download_button("Download report (.md)", st.session_state["radar_md"], "trend-radar.md")
-        st.caption("Instagram and TikTok can't be read directly. Trends come from public pages that report on them.")
+        st.caption(
+            "Instagram and TikTok can't be read directly. Trends come from public pages that report on them. "
+            f"This scan cost about ${st.session_state.get('radar_cost', 0):.2f} in Claude credits."
+        )
 
 with tab_archive:
     files = sorted(REPORTS.glob("*.md"), reverse=True) if REPORTS.exists() else []

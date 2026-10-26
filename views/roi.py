@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from core.brief import write_brief
-from core.llm import ClaudeError, get_client
+from core.llm import ClaudeError, get_client, reset_cost, run_cost
 from core.roi import Plan, project, scenarios, utm_link
 from core.ui import header
 
@@ -136,11 +136,14 @@ with tab_brief:
     creators = st.text_input("Creators", value="3 micro creators on TikTok and Instagram, personal finance niche")
     if st.button("Write brief", type="primary"):
         client = get_client()
+        reset_cost()
         try:
             with st.spinner("Writing the brief…"):
                 st.session_state["brief"] = write_brief(client, brand, product, goal, creators, f"Campaign: {campaign}.")
+                st.session_state["brief_cost"] = run_cost()
         except ClaudeError as e:
             st.error(str(e))
     if st.session_state.get("brief"):
         st.markdown(st.session_state["brief"])
         st.download_button("Download brief (.md)", st.session_state["brief"], "campaign-brief.md")
+        st.caption(f"This brief cost about ${st.session_state.get('brief_cost', 0):.2f} in Claude credits.")

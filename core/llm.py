@@ -1,6 +1,7 @@
 """Shared Claude client and helpers."""
 
 import os
+import threading
 
 import anthropic
 import streamlit as st
@@ -82,8 +83,37 @@ def _with_fallback(method, **kwargs):
         raise friendly from e
 
 
+# Claude Opus 5.5 list prices, USD per million tokens, and per web search. Used to show what a run cost.
+PRICE_PER_MTOK = {"input": 4.00, "output": 20.00, "cache_read": 0.20, "cache_write": 5.00}
+PRICE_PER_SEARCH = 0.01
+_meter = threading.local()  # Streamlit runs each visitor's script in its own thread
+
+
+def reset_cost() -> None:
+    _meter.usd = 0.0
+
+
+def run_cost() -> float:
+    """Estimated USD spent by the Claude calls since reset_cost()."""
+    return getattr(_meter, "usd", 0.0)
+
+
+def _track(response):
+    usage = getattr(response, "usage", None)
+    if usage is not None:
+        tokens = (
+            (usage.input_tokens or 0) * PRICE_PER_MTOK["input"]
+            + (usage.output_tokens or 0) * PRICE_PER_MTOK["output"]
+            + (getattr(usage, "cache_read_input_tokens", 0) or 0) * PRICE_PER_MTOK["cache_read"]
+            + (getattr(usage, "cache_creation_input_tokens", 0) or 0) * PRICE_PER_MTOK["cache_write"]
+        )
+        searches = getattr(getattr(usage, "server_tool_use", None), "web_search_requests", 0) or 0
+        _meter.usd = run_cost() + tokens / 1_000_000 + searches * PRICE_PER_SEARCH
+    return response
+
+
 def create(client: anthropic.Anthropic, **kwargs):
-    return _with_fallback(client.beta.messages.create, model=MODEL, **kwargs)
+    return _track(_with_fallback(client.beta.messages.create, model=MODEL, **kwargs))
 
 
 def stream(client: anthropic.Anthropic, on_event=None, **kwargs):
@@ -96,11 +126,11 @@ def stream(client: anthropic.Anthropic, on_event=None, **kwargs):
                     on_event(event)
             return events.get_final_message()
 
-    return _with_fallback(run, **kwargs)
+    return _track(_with_fallback(run, **kwargs))
 
 
 def parse(client: anthropic.Anthropic, **kwargs):
-    return _with_fallback(client.beta.messages.parse, model=MODEL, **kwargs)
+    return _track(_with_fallback(client.beta.messages.parse, model=MODEL, **kwargs))
 
 
 def check_refusal(message) -> None:

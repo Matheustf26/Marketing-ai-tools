@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-from core.llm import ClaudeError, get_client
+from core.llm import ClaudeError, get_client, reset_cost, run_cost
 from core.scout import build_research_prompt, clean_handle, format_followers, research, structure
 from core.ui import header
 
@@ -33,6 +33,7 @@ with st.form("scout"):
 if submitted:
     client = get_client()
     prompt = build_research_prompt(niche, platforms, country, size, brands, count)
+    reset_cost()
     try:
         with st.status("Searching the web…", expanded=True) as status:
             notes = research(client, prompt, on_progress=lambda q: st.markdown(f":material/search: {q}"))
@@ -43,6 +44,7 @@ if submitted:
         st.error(str(e))
         st.stop()
     st.session_state["scout_result"] = result
+    st.session_state["scout_cost"] = run_cost()
 
 result = st.session_state.get("scout_result")
 if result:
@@ -91,4 +93,7 @@ if result:
         st.session_state["roi_creators"] = df[["name", "handle", "platform", "followers"]].to_dict("records")
         st.switch_page("views/roi.py")
 
-    st.caption("Follower counts come from public sources and can be out of date. Check each profile before outreach.")
+    st.caption(
+        "Follower counts come from public sources and can be out of date. Check each profile before outreach. "
+        f"This search cost about ${st.session_state.get('scout_cost', 0):.2f} in Claude credits."
+    )

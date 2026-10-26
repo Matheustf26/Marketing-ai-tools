@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 import anthropic
 from pydantic import BaseModel, Field
 
-from core.llm import parse, stream, text_of
+from core.llm import parse, run_cost, stream, text_of
 
 WEB_SEARCH = {"type": "web_search_20260209", "name": "web_search", "max_uses": 10}
 MAX_CONTINUATIONS = 5
@@ -162,6 +162,7 @@ def main() -> None:
     path = out / f"{day.isoformat()}-{slug(args.segment)}.md"
     path.write_text(to_markdown(report, args.segment, day))
     print("wrote", path)
+    print(f"estimated cost: ${run_cost():.2f}")
 
 
 if __name__ == "__main__":
