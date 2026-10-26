@@ -1,5 +1,8 @@
+from html import escape
+
 import streamlit as st
 
+from core.radar import report_date, report_trends, saved_reports
 from core.roi import Plan, project
 from core.ui import PAGES, icon
 
@@ -18,6 +21,17 @@ st.html(
     f'<div class="win"><b>+${out.profit:,.0f}</b><span>profit on a ${example.fee:,.0f} post</span></div>'
     "</div></div>"
 )
+
+reports = saved_reports()
+if reports:
+    with st.container(border=True):
+        left, right = st.columns([5, 1], vertical_alignment="center")
+        trends = "".join(f"<li>{escape(t)}</li>" for t in report_trends(reports[0])[:3])
+        left.html(
+            f'<div class="latest"><span>Top trends this week, from the Radar report of {report_date(reports[0])}</span>'
+            f"<ol>{trends}</ol></div>"
+        )
+        right.page_link(PAGES[1][0], label="Read", icon=":material/arrow_forward:", icon_position="right")
 
 TOOLS = [
     (
@@ -53,3 +67,8 @@ for (name, text), (path, title, *_, question) in zip(TOOLS, PAGES[1:]):
                 f'<div><h3>{title}</h3><div class="q">{question}</div><p>{text}</p></div></div>'
             )
         right.page_link(path, label="Open", icon=":material/arrow_forward:", icon_position="right")
+
+st.caption(
+    "Opening the suite and using the ROI Planner is free. Claude runs only when you press a research button, "
+    "at about $1 a scan, and every result shows what it cost."
+)

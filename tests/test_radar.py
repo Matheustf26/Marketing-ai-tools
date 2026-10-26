@@ -30,3 +30,11 @@ def test_to_markdown_lists_trends_and_sources():
 
 def test_slug():
     assert slug("Personal finance, budgeting & credit") == "personal-finance-budgeting-credit"
+
+
+def test_saved_reports_have_a_date_and_headline():
+    from core.radar import report_date, report_trends, saved_reports
+
+    latest = saved_reports()[0]
+    assert report_date(latest).split(",")[0] in {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
+    assert len(report_trends(latest)) >= 3

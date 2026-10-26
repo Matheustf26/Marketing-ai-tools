@@ -130,6 +130,32 @@ def to_markdown(report: RadarReport, segment: str, today: dt.date) -> str:
     return "\n".join(lines)
 
 
+REPORTS = Path(__file__).parent.parent / "reports"
+
+
+def saved_reports() -> list[Path]:
+    """Reports written by the scheduled run, newest first. Reading them costs nothing."""
+    return sorted(REPORTS.glob("*.md"), reverse=True) if REPORTS.exists() else []
+
+
+def report_date(path: Path) -> str:
+    """'Monday, October 26, 2026' from a file named 2026-10-26-segment.md."""
+    try:
+        day = dt.date.fromisoformat(path.name[:10])
+    except ValueError:
+        return path.stem
+    return f"{day:%A, %B} {day.day}, {day.year}"
+
+
+def report_trends(path: Path) -> list[str]:
+    """Trend titles from the '## 1. Topic' headings of a report."""
+    return [
+        line.split(". ", 1)[1]
+        for line in path.read_text().splitlines()
+        if line.startswith("## ") and line[3:4].isdigit() and ". " in line
+    ]
+
+
 def today() -> dt.date:
     """The team works in Los Angeles."""
     return dt.datetime.now(tz=ZoneInfo("America/Los_Angeles")).date()

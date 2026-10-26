@@ -28,7 +28,7 @@ CSS = """
 .block-container {padding-top: 1.6rem; max-width: 1120px;}
 header[data-testid="stHeader"] {display: none;}
 .topbar {display: flex; align-items: center; gap: 14px; min-height: 44px;}
-.topbar img {height: 32px; width: auto;}
+.topbar img {height: 32px; width: auto; color: var(--teal); font-weight: 800; font-size: 1.1rem;}
 .topbar .sep {width: 1px; height: 24px; background: var(--line);}
 .topbar .suite {font-weight: 700; color: var(--teal); font-size: 1rem;}
 .band {background: var(--teal); color: #fff; border-radius: 20px; padding: 28px 32px; margin: 4px 0 1.6rem;}
@@ -43,6 +43,8 @@ header[data-testid="stHeader"] {display: none;}
 .chain b {display: block; font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em;}
 .chain span {color: rgba(255,255,255,.7); font-size: .88rem;}
 .chain .win b {color: #7BE3BC;}
+.latest span {color: var(--signal); font-weight: 700; font-size: .92rem;}
+.latest ol {color: var(--teal); font-weight: 700; font-size: 1.05rem; line-height: 1.6; margin: 6px 0 0; padding-left: 1.3rem;}
 .tool {display: flex; gap: 18px; align-items: flex-start;}
 .tool-icon {flex: 0 0 48px; height: 48px; border-radius: 14px; background: var(--mist); display: flex;
   align-items: center; justify-content: center;}

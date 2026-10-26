@@ -21,11 +21,11 @@ tab_one, tab_many, tab_links, tab_brief = st.tabs(
 
 with tab_one:
     c1, c2, c3, c4, c5 = st.columns(5)
-    fee = c1.number_input("Creator fee ($)", min_value=0.0, value=1500.0, step=100.0)
-    views = c2.number_input("Expected views", min_value=0.0, value=80000.0, step=5000.0)
-    ctr = c3.number_input("Link CTR (%)", min_value=0.0, value=1.0, step=0.1) / 100
-    lead_rate = c4.number_input("Click → lead (%)", min_value=0.0, value=8.0, step=0.5) / 100
-    rpl = c5.number_input("Revenue per lead ($)", min_value=0.0, value=35.0, step=1.0)
+    fee = c1.number_input("Creator fee ($)", min_value=0, value=1500, step=100)
+    views = c2.number_input("Expected views", min_value=0, value=80000, step=5000)
+    ctr = c3.number_input("Link CTR (%)", min_value=0.0, value=1.0, step=0.1, format="%.1f") / 100
+    lead_rate = c4.number_input("Click → lead (%)", min_value=0.0, value=8.0, step=0.5, format="%.1f") / 100
+    rpl = c5.number_input("Revenue per lead ($)", min_value=0, value=35, step=1)
     plan = Plan(fee, views, ctr, lead_rate, rpl)
 
     base = project(plan)
@@ -51,13 +51,24 @@ with tab_one:
                 "Scenario": name,
                 "Clicks": round(o.clicks),
                 "Leads": round(o.leads),
-                "Revenue": money(o.revenue),
-                "Profit": money(o.profit),
-                "ROI": "n/a" if o.roi is None else f"{o.roi:.0%}",
-                "Cost per lead": money(o.cost_per_lead),
+                "Revenue": o.revenue,
+                "Profit": o.profit,
+                "ROI": None if o.roi is None else o.roi * 100,
+                "Cost per lead": o.cost_per_lead,
             }
         )
-    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+    st.dataframe(
+        pd.DataFrame(rows),
+        hide_index=True,
+        width="stretch",
+        column_config={
+            "Clicks": st.column_config.NumberColumn(format="localized"),
+            "Revenue": st.column_config.NumberColumn(format="dollar"),
+            "Profit": st.column_config.NumberColumn(format="dollar"),
+            "ROI": st.column_config.NumberColumn(format="%.0f%%"),
+            "Cost per lead": st.column_config.NumberColumn(format="dollar"),
+        },
+    )
     st.caption("Pessimistic and optimistic scale clicks by 0.5x and 1.5x. Use your own past campaign data when you have it.")
 
 with tab_many:
@@ -81,7 +92,7 @@ with tab_many:
             ]
         )
     rpl_many = st.number_input("Revenue per lead ($)", min_value=0.0, value=35.0, step=1.0, key="rpl_many")
-    table = st.data_editor(start, num_rows="dynamic", hide_index=True, use_container_width=True)
+    table = st.data_editor(start, num_rows="dynamic", hide_index=True, width="stretch")
 
     results = []
     for _, r in table.dropna(subset=["Fee ($)"]).iterrows():
@@ -105,11 +116,11 @@ with tab_many:
         t2.metric("Total leads", f"{out['Leads'].sum():,}")
         t3.metric("Campaign profit", money(total_profit))
         out["Profit"] = out["Profit"].apply(money)
-        st.dataframe(out, hide_index=True, use_container_width=True)
+        st.dataframe(out, hide_index=True, width="stretch")
 
 with tab_links:
     st.markdown("Give every creator their own link, so you know who actually brings leads.")
-    base_url = st.text_input("Landing page URL", value="https://www.example.com/apply")
+    base_url = st.text_input("Landing page URL", value="https://www.fastloanadvance.com/")
     campaign = st.text_input("Campaign name", value="creators-q4")
     default_handles = (
         "\n".join(f"{r['platform']},{r['handle'] or r['name']}" for r in seeded)
@@ -124,7 +135,7 @@ with tab_links:
             links.append({"Creator": handle, "Platform": platform, "Link": utm_link(base_url, platform, campaign, handle)})
     if links:
         links_df = pd.DataFrame(links)
-        st.dataframe(links_df, hide_index=True, use_container_width=True)
+        st.dataframe(links_df, hide_index=True, width="stretch")
         st.download_button("Download links CSV", links_df.to_csv(index=False).encode(), "utm-links.csv", "text/csv")
         st.caption("In GA4, filter by utm_medium = influencer and break down by utm_content to see leads per creator.")
 

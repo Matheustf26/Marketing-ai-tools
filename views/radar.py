@@ -1,16 +1,21 @@
-from pathlib import Path
-
 import streamlit as st
 
 from core.llm import get_client, reset_cost, run_cost
-from core.radar import DEFAULT_BRANDS, build_prompt, research, structure, to_markdown, today
+from core.radar import (
+    DEFAULT_BRANDS,
+    build_prompt,
+    report_date,
+    research,
+    saved_reports,
+    structure,
+    to_markdown,
+    today,
+)
 from core.ui import header
 
 header("radar", "Creator Radar", "What your segment is talking about this week on Instagram and TikTok, with a content idea for each brand.")
 
-REPORTS = Path(__file__).parent.parent / "reports"
-
-tab_run, tab_archive = st.tabs(["Run a radar now", "Weekly reports"])
+tab_archive, tab_run = st.tabs(["This week's report", "Run a new scan"])
 
 with tab_run:
     with st.form("radar"):
@@ -48,9 +53,16 @@ with tab_run:
         )
 
 with tab_archive:
-    files = sorted(REPORTS.glob("*.md"), reverse=True) if REPORTS.exists() else []
+    files = saved_reports()
     if not files:
         st.info("No weekly reports yet. The first one is generated automatically on the next Monday or Friday.")
     else:
-        choice = st.selectbox("Report", files, format_func=lambda p: p.stem)
-        st.markdown(choice.read_text())
+        choice = st.selectbox("Report", files, format_func=report_date)
+        st.caption(
+            "Written automatically every Monday and Friday morning by a scheduled job. "
+            "Reading a saved report is free; only a new scan uses Claude credits."
+        )
+        with st.container(border=True):
+            # The page banner already names the tool, so the report's own title becomes a small heading.
+            text = choice.read_text()
+            st.markdown("#### " + text[2:] if text.startswith("# ") else text)
