@@ -20,6 +20,7 @@ ICONS = {
     "scout": '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><circle cx="11" cy="9.5" r="2.5"/>'
     '<path d="M7 15a4.5 4.5 0 0 1 8 0"/>',
     "roi": '<circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/>',
+    "performance": '<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
 }
 
 CSS = """
@@ -52,6 +53,10 @@ header[data-testid="stHeader"] {display: none;}
 .tool h3 {font-size: 1.15rem; font-weight: 800; color: var(--teal); margin: 0 0 2px; padding: 0;}
 .tool .q {color: var(--signal); font-weight: 700; font-size: .92rem; margin-bottom: 4px;}
 .tool p {color: var(--slate); margin: 0; line-height: 1.5;}
+.rates {width: 100%; border-collapse: collapse; font-size: 1rem;}
+.rates th {text-align: left; color: var(--slate); font-weight: 600; font-size: .88rem; padding: 10px 12px; border-bottom: 1px solid var(--line);}
+.rates td {padding: 12px; border-bottom: 1px solid var(--line); color: var(--teal);}
+.rates td.win {color: var(--signal); font-weight: 800;}
 [data-testid="stMetric"] {background: var(--mist); border-radius: 14px; padding: 14px 18px; min-height: 120px;}
 [data-testid="stMetricValue"] {font-weight: 800; color: var(--teal);}
 .footer {margin-top: 3rem; padding-top: 14px; border-top: 1px solid var(--line); color: var(--slate); font-size: .82rem;}
@@ -79,6 +84,7 @@ PAGES = [
     ("views/radar.py", "Creator Radar", ":material/radar:", "creator-radar", "What should we talk about?"),
     ("views/scout.py", "Creator Scout", ":material/person_search:", "creator-scout", "Who should we work with?"),
     ("views/roi.py", "Creator ROI Planner", ":material/payments:", "creator-roi-planner", "Does it make money?"),
+    ("views/performance.py", "Creator Performance", ":material/insights:", "creator-performance", "What actually worked?"),
 ]
 
 

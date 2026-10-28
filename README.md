@@ -2,7 +2,7 @@
 
 Influencer marketing tools for Fast Loan Advance, built with Claude: weekly trends, creator discovery and ROI planning.
 
-Influencer marketing usually stalls on three questions: **what should we talk about?**, **who should we work with?** and **how does this make money?** These three tools answer them, and they're built to work together.
+Influencer marketing usually stalls on four questions: **what should we talk about?**, **who should we work with?**, **how does this make money?** and **what actually worked?** These four tools answer them, and they're built to work together.
 
 ![Home](docs/home.png)
 
@@ -43,6 +43,12 @@ Treats every sponsored post as a small lead-gen campaign: **views → clicks →
 - **Campaign brief:** Claude writes a brief with FTC disclosure rules, finance-specific don'ts (no guaranteed approval claims) and a "needs legal review" list.
 
 ![ROI Planner](docs/roi.png)
+
+## 📊 Creator Performance
+
+Compares two posts by what people did per 1,000 views, not by raw views. Enter views, shares and profile visits (saves and link clicks are optional); it highlights the higher rate, shows how many times better it is, recommends which post to build on and the follow-up post, and lists what the numbers can't tell you (watch time, traffic source, entries, sentiment, sample size). It never claims to predict virality, and it makes no Claude call, so it costs nothing to run.
+
+![Creator Performance](docs/performance.png)
 
 ## Run it locally
 

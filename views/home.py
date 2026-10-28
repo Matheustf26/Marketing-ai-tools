@@ -12,7 +12,8 @@ out = project(example)
 
 st.html(
     '<div class="band"><h1>Influencer marketing that pays for itself</h1>'
-    "<p>Know what to talk about this week, find the right creators, and prove the return before paying anyone.</p>"
+    "<p>Know what to talk about this week, find the right creators, prove the return before paying anyone, "
+    "and learn from what each post actually did.</p>"
     '<div class="chain">'
     f"<div><b>{example.views:,.0f}</b><span>views</span></div>"
     f"<div><b>{out.clicks:,.0f}</b><span>link clicks at 1%</span></div>"
@@ -55,9 +56,16 @@ TOOLS = [
             "tracking links and a compliant brief."
         ),
     ),
+    (
+        "performance",
+        (
+            "Compares posts by shares and profile visits per 1,000 views, picks the one to build on and suggests "
+            "the follow-up post. No Claude call, so it's free to use."
+        ),
+    ),
 ]
 
-st.subheader("Three steps, one tool each")
+st.subheader("Four steps, one tool each")
 for (name, text), (path, title, *_, question) in zip(TOOLS, PAGES[1:]):
     with st.container(border=True):
         left, right = st.columns([5, 1], vertical_alignment="center")
@@ -69,6 +77,6 @@ for (name, text), (path, title, *_, question) in zip(TOOLS, PAGES[1:]):
         right.page_link(path, label="Open", icon=":material/arrow_forward:", icon_position="right")
 
 st.caption(
-    "Opening the suite and using the ROI Planner is free. Claude runs only when you press a research button, "
+    "Opening the suite, the ROI Planner and Creator Performance are free. Claude runs only when you press a research button, "
     "at about $1 a scan, and every result shows what it cost."
 )

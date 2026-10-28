@@ -11,7 +11,7 @@ from core.scout import Creator, ScoutResult
 def test_every_page_renders():
     at = AppTest.from_file("../Home.py", default_timeout=30).run()
     assert not at.exception, at.exception
-    for page in ["views/radar.py", "views/scout.py", "views/roi.py"]:
+    for page in ["views/radar.py", "views/scout.py", "views/roi.py", "views/performance.py"]:
         at.switch_page(page).run()
         assert not at.exception, (page, at.exception)
 
