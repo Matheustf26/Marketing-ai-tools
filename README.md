@@ -11,7 +11,7 @@ Influencer marketing usually stalls on four questions: **what should we talk abo
 What's getting attention in a segment this week on Instagram and TikTok: the top topics, why they're trending now, standout creators and posts (with sources and engagement when reported), the formats that are working, and a content idea for each one that fits a regulated financial brand.
 
 - **On demand:** run a scan from the app for any segment.
-- **Every Monday and Friday:** a GitHub Action (`.github/workflows/trend-radar.yml`) runs the radar, saves the report in `reports/`, and the app shows it under **Weekly reports**.
+- **Every Monday:** a GitHub Action (`.github/workflows/trend-radar.yml`) runs the radar, saves the report in `reports/`, and the app shows it under **This week's report**.
 
 Instagram and TikTok can't be read directly, so Claude uses public pages that report on them (media coverage, trend roundups, platform trend pages, Google Trends). It only reports numbers it found.
 
@@ -88,7 +88,7 @@ core/radar.py                   trend research + report (also a CLI for the sche
 core/llm.py                     Claude client, API key handling
 reports/                        radar reports written by the GitHub Action
 reports/briefs/                 one-page leadership briefs
-.github/workflows/              Monday and Friday schedule
+.github/workflows/              Monday schedule
 .claude/skills/                 Claude Code skills for this project
 tests/                          unit tests and page smoke tests
 ```

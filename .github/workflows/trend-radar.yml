@@ -2,9 +2,9 @@ name: Weekly creator radar
 
 on:
   schedule:
-    # Monday and Friday, 13:17 UTC (6:17 AM in Los Angeles). GitHub drops or delays runs set for the top of
+    # Every Monday, 13:17 UTC (early morning in Los Angeles). GitHub drops or delays runs set for the top of
     # the hour when it is busy, so this runs a few minutes after.
-    - cron: "17 13 * * 1,5"
+    - cron: "17 13 * * 1"
   workflow_dispatch: # also lets you run it by hand from the Actions tab
 
 permissions:

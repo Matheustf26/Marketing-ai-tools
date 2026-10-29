@@ -9,7 +9,7 @@ Turns the newest Creator Radar report into a one-page brief a CEO can read in tw
 
 ## Inputs
 
-- The newest file in `reports/` (written every Monday and Friday by `.github/workflows/trend-radar.yml`). If the person names a date or segment, use that report.
+- The newest file in `reports/` (written every Monday by `.github/workflows/trend-radar.yml`). If the person names a date or segment, use that report.
 - The ROI model in `core/roi.py`. Defaults: fee $1,500, 80,000 views, 1% click rate, 8% click to lead, $35 a lead. Use the person's numbers if they give them.
 - Brands: Fast Loan Advance, Fast Loan Direct and Grace Loan Advance (positioning in `core/radar.py`, `DEFAULT_BRANDS`).
 

@@ -39,7 +39,7 @@ TOOLS = [
         "radar",
         (
             "Spots this week's top topics and standout creators in your segment, with a content idea for each brand. "
-            "A new report lands every Monday and Friday."
+            "A new report lands every Monday morning."
         ),
     ),
     (

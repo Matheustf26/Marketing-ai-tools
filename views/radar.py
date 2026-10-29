@@ -55,11 +55,11 @@ with tab_run:
 with tab_archive:
     files = saved_reports()
     if not files:
-        st.info("No weekly reports yet. The first one is generated automatically on the next Monday or Friday.")
+        st.info("No weekly reports yet. The first one is generated automatically next Monday.")
     else:
         choice = st.selectbox("Report", files, format_func=report_date)
         st.caption(
-            "Written automatically every Monday and Friday morning by a scheduled job. "
+            "Written automatically every Monday morning by a scheduled job. "
             "Reading a saved report is free; only a new scan uses Claude credits."
         )
         with st.container(border=True):
