@@ -61,6 +61,9 @@ def test_scout_flow():
         assert not at.exception, at.exception
         assert at.session_state["scout_result"].creators[0].handle == "@janemoney"
         assert any("personal finance tiktok creators" in m.value for m in at.markdown)
+        next(b for b in at.button if b.label == "Compare these creators in ROI Planner").click().run()
+        assert not at.exception, at.exception
+        assert any("Loaded 1 creators" in s.value for s in at.success)
 
 
 def test_handles_and_followers_are_standardized():

@@ -6,8 +6,9 @@ import anthropic
 from pydantic import BaseModel, Field
 
 from core.llm import check_refusal, parse, stream, text_of
+from core.roi import GOOD_FIT
 
-WEB_SEARCH = {"type": "web_search_20260209", "name": "web_search", "max_uses": 8}
+WEB_SEARCH = {"type": "web_search_20260209", "name": "web_search", "max_uses": 12}
 MAX_CONTINUATIONS = 5
 
 
@@ -18,6 +19,10 @@ class Creator(BaseModel):
     followers: int = Field(description="Follower count on that platform as a whole number, e.g. 61300")
     content_summary: str = Field(description="One sentence on what they post")
     audience_fit: str = Field(description="Why their audience matches the brief")
+    avg_views: int = Field(default=0, description="Average views per post if a source reports it, otherwise 0")
+    recent_activity: str = Field(
+        default="", description="A recent post or source showing they are active in this niche, with its date if known"
+    )
     fit_score: int = Field(description="1 to 10, how well they match the brief")
     best_brand: str = Field(description="Which of the listed brands fits best, or 'Any'")
     brand_safety_flags: list[str] = Field(
@@ -54,12 +59,17 @@ Rules:
 - Every creator you list needs three things from a source: their @handle, the platform, and a follower count on
   that platform. For promising creators, run one quick search on their handle (e.g. "@handle tiktok followers")
   to find them. If you can't find all three, leave the creator out.
+- Confirm every creator with a search on their own handle. Prefer sources from the last 12 months.
+- Only keep creators who post about this niche regularly and were active in the last 90 days. Note a recent post or
+  source as proof, with its date when you have it. If a source reports average views per post, note it.
+- Leave out brand accounts, agencies, inactive accounts and anyone whose fit would be below 7 out of 10.
+  Fewer strong matches are better than a long list of weak ones: return fewer than asked rather than pad the list.
 - Flag brand-safety risks honestly: get-rich-quick claims, controversies, promoting competitors, signs of fake followers.
 - In regulated categories (finance, health), note anything that could create compliance risk."""
 
 
 def build_research_prompt(niche: str, platforms: list[str], country: str, size: str, brands: str, count: int) -> str:
-    return f"""Find {count} creators for this influencer campaign.
+    return f"""Find up to {count} creators for this influencer campaign. Only strong, verified matches.
 
 Niche / product: {niche}
 Platforms: {", ".join(platforms)}
@@ -69,8 +79,9 @@ Creator size: {size}
 Brands we might pair them with:
 {brands}
 
-For each creator, give: name, @handle, platform, follower count on that platform, what they post,
-why the audience fits, a 1-10 fit score, the best brand match, brand-safety flags, and the source URL.
+For each creator, give: name, @handle, platform, follower count on that platform, average views per post if a
+source reports it, a recent post that proves they are active in the niche, what they post, why the audience fits,
+a 1-10 fit score, the best brand match, brand-safety flags, and the source URL.
 Then write a short, personal first outreach DM for each one."""
 
 
@@ -115,7 +126,7 @@ def structure(client: anthropic.Anthropic, notes: str) -> ScoutResult:
             {
                 "role": "user",
                 "content": "Convert these research notes into the schema. Keep only creators whose notes give an "
-                "@handle, one platform and a follower count on that platform. Leave out everyone else, and "
+                "@handle, one platform and a follower count on that platform, and who fit the brief well. Leave out everyone else, and "
                 "do not add anyone new.\n\n" + notes,
             }
         ],
@@ -124,5 +135,5 @@ def structure(client: anthropic.Anthropic, notes: str) -> ScoutResult:
     result = response.parsed_output
     for c in result.creators:
         c.handle = clean_handle(c.handle)
-    result.creators = [c for c in result.creators if c.handle and c.followers > 0]
+    result.creators = [c for c in result.creators if c.handle and c.followers > 0 and c.fit_score >= GOOD_FIT]
     return result

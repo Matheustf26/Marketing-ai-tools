@@ -52,8 +52,8 @@ TOOLS = [
     (
         "roi",
         (
-            "Turns a post into views, clicks, leads and revenue, shows the most a creator is worth, and builds "
-            "tracking links and a compliant brief."
+            "Puts creators' real quotes side by side with their followers, averages and fit, and shows which one "
+            "is the best value. Plus tracking links and a compliant brief."
         ),
     ),
     (

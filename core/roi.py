@@ -47,6 +47,82 @@ def project(plan: Plan, multiplier: float = 1.0) -> Outcome:
     )
 
 
+@dataclass
+class QuoteCost:
+    """What a creator's quote buys, from the price and the creator's real averages. No guesses."""
+
+    cost_per_video: float | None
+    total_views: float
+    cpm: float | None  # cost per 1,000 views
+    engagement_rate: float | None  # (likes + comments) / views
+    cost_per_engagement: float | None
+
+
+def quote_cost(price: float, videos: int, avg_views: float, avg_likes: float = 0, avg_comments: float = 0) -> QuoteCost:
+    total_views = avg_views * videos
+    engagements = (avg_likes + avg_comments) * videos
+    return QuoteCost(
+        cost_per_video=price / videos if videos else None,
+        total_views=total_views,
+        cpm=price / total_views * 1000 if total_views else None,
+        engagement_rate=(avg_likes + avg_comments) / avg_views if avg_views else None,
+        cost_per_engagement=price / engagements if engagements else None,
+    )
+
+
+GOOD_FIT = 7  # fit score (1-10) a creator needs to be recommended
+
+
+@dataclass
+class Offer:
+    """One creator's quote and real numbers, as typed into the comparison."""
+
+    creator: str
+    followers: float
+    fit: float  # 1-10, from Creator Scout or our own review
+    price: float
+    videos: float
+    avg_views: float
+    avg_likes: float = 0
+    avg_comments: float = 0
+    link_clicks: float = 0  # total link clicks the package is expected to bring, if the creator shares past results
+
+
+def compare_offers(offers: list[Offer]) -> list[dict]:
+    """Cost of each quote side by side, and which good-fit creator gives the most for the money."""
+    rows = []
+    for o in offers:
+        c = quote_cost(o.price, int(o.videos), o.avg_views, o.avg_likes, o.avg_comments)
+        complete = bool(o.price and o.videos and o.avg_views)
+        rows.append(
+            {
+                "Creator": o.creator,
+                "Cost per video": c.cost_per_video,
+                "Cost per 1,000 views": c.cpm,
+                "Engagement rate": None if c.engagement_rate is None else c.engagement_rate * 100,
+                "Cost per engagement": c.cost_per_engagement,
+                "Cost per click": o.price / o.link_clicks if o.link_clicks else None,
+                "Fit": o.fit,
+                "_complete": complete,
+            }
+        )
+    ranked = sorted(
+        (r for r in rows if r["_complete"] and r["Fit"] >= GOOD_FIT),
+        key=lambda r: r["Cost per 1,000 views"],
+    )
+    for r in rows:
+        if not r["_complete"]:
+            r["Verdict"] = "Add quote and views"
+        elif r["Fit"] < GOOD_FIT:
+            r["Verdict"] = "Weak fit"
+        elif r is ranked[0]:
+            r["Verdict"] = "Best value"
+        else:
+            r["Verdict"] = f"Option {ranked.index(r) + 1}"
+        del r["_complete"]
+    return rows
+
+
 def scenarios(plan: Plan) -> dict[str, Outcome]:
     return {name: project(plan, m) for name, m in SCENARIOS.items()}
 

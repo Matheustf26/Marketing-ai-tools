@@ -35,7 +35,7 @@ with st.form("scout"):
         ["Nano (1K-10K)", "Micro (10K-100K)", "Mid (100K-500K)", "Macro (500K+)", "Any"],
         index=1,
     )
-    count = st.slider("How many creators", 5, 20, 10)
+    count = st.slider("At most this many creators", 3, 10, 5, help="Scout returns fewer if it can't verify enough strong matches.")
     brands = st.text_area("Brands to match (one per line: name: positioning)", value=DEFAULT_BRANDS, height=100)
     submitted = st.form_submit_button("Find creators", type="primary")
 
@@ -59,22 +59,24 @@ result = st.session_state.get("scout_result")
 if result:
     df = pd.DataFrame([c.model_dump() for c in result.creators])
     if df.empty:
-        st.warning("No creators with a confirmed handle and follower count. Try a broader niche or another platform.")
+        st.warning("No creators passed the checks (confirmed handle, follower count, recent activity, fit 7+). Try a broader niche or another platform.")
         st.stop()
     df["handle"] = df["handle"].map(clean_handle)
     df = df.sort_values(["fit_score", "followers"], ascending=False)
     df["followers_label"] = df["followers"].map(format_followers)
+    df["views_label"] = df["avg_views"].map(lambda v: format_followers(v) if v else "Not reported")
     df["brand_safety"] = df["brand_safety_flags"].apply(lambda f: "; ".join(f) if f else "None found")
 
     st.subheader(f"{len(df)} creators")
     st.caption(result.search_summary)
     st.dataframe(
-        df[["name", "handle", "platform", "followers_label", "fit_score", "best_brand"]],
+        df[["name", "handle", "platform", "followers_label", "views_label", "fit_score", "best_brand"]],
         column_config={
             "name": "Creator",
             "handle": "Handle",
             "platform": "Platform",
             "followers_label": "Followers",
+            "views_label": "Avg views",
             "fit_score": st.column_config.ProgressColumn("Fit", min_value=0, max_value=10, format="%d/10"),
             "best_brand": "Best brand",
         },
@@ -88,18 +90,20 @@ if result:
         with st.expander(label):
             st.write(f"**What they post:** {row['content_summary']}")
             st.write(f"**Why they fit:** {row['audience_fit']}")
+            if row["recent_activity"]:
+                st.write(f"**Recent activity:** {row['recent_activity']}")
             st.write(f"**Best brand:** {row['best_brand']}")
             st.write(f"**Brand safety:** {row['brand_safety']}")
             st.text_area("First message", row["outreach_message"], key=f"dm_{row.name}", height=110)
 
     export = df[
-        ["name", "handle", "platform", "followers", "fit_score", "best_brand", "brand_safety",
-         "content_summary", "audience_fit", "outreach_message", "source_url"]
+        ["name", "handle", "platform", "followers", "avg_views", "fit_score", "best_brand", "brand_safety",
+         "recent_activity", "content_summary", "audience_fit", "outreach_message", "source_url"]
     ]
     c1, c2 = st.columns(2)
     c1.download_button("Download CSV", export.to_csv(index=False).encode(), file_name="creators.csv", mime="text/csv")
-    if c2.button("Send shortlist to ROI Planner"):
-        st.session_state["roi_creators"] = df[["name", "handle", "platform", "followers"]].to_dict("records")
+    if c2.button("Compare these creators in ROI Planner"):
+        st.session_state["roi_creators"] = df[["name", "handle", "platform", "followers", "fit_score", "avg_views"]].to_dict("records")
         st.switch_page("views/roi.py")
 
     st.caption(

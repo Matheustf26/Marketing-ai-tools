@@ -27,7 +27,7 @@ Describe a niche or product, choose platforms, country and creator size. Claude 
 - brand-safety flags (get-rich-quick claims, controversies, competitor deals)
 - a personal first outreach message
 
-Export everything to CSV, or send the shortlist straight to the ROI Planner.
+It returns fewer, verified creators rather than a long list: each one needs a confirmed handle, a follower count, recent activity in the niche and a fit of 7/10 or more. Export everything to CSV, or send the shortlist to the ROI Planner to compare quotes.
 
 ![Creator Scout](docs/scout.png)
 
@@ -35,10 +35,10 @@ Export everything to CSV, or send the shortlist straight to the ROI Planner.
 
 ## 💰 Creator ROI Planner
 
-Treats every sponsored post as a small lead-gen campaign: **views → clicks → leads → revenue**.
+Starts from what creators actually quote, not from assumptions.
 
-- **Single creator:** cost per lead, profit, ROI, break-even leads and the maximum fee worth paying, with pessimistic, realistic and optimistic scenarios.
-- **Campaign:** an editable table of creators that shows which ones to book and which to renegotiate (or move to a flat fee + bonus per lead).
+- **Compare creators:** one row per creator with their price, number of videos, followers, real average views, likes and comments, link clicks if they share past results, and fit. It shows cost per video, per 1,000 views, per engagement and per click, and names the best value among good-fit creators.
+- **One quote in detail:** what a single package buys, and, with our own funnel numbers from past campaigns, leads, profit, break-even and the most the package is worth.
 - **Tracking links:** a UTM link per creator, so GA4 shows exactly who brings leads.
 - **Campaign brief:** Claude writes a brief with FTC disclosure rules, finance-specific don'ts (no guaranteed approval claims) and a "needs legal review" list.
 
