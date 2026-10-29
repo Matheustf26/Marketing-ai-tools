@@ -10,10 +10,26 @@ from core.radar import (
     structure,
     to_markdown,
     today,
+    trends_in,
 )
 from core.ui import header
 
 header("radar", "Creator Radar", "What your segment is talking about this week on Instagram and TikTok, with a content idea for each brand.")
+
+
+
+def find_creators(report: str, key: str) -> None:
+    """One click from a trend to Creator Scout, with the trend filled in as the niche."""
+    trends = trends_in(report)
+    if not trends:
+        return
+    with st.container(border=True):
+        left, right = st.columns([3, 1], vertical_alignment="bottom")
+        trend = left.selectbox("Find creators for a trend", trends, key=f"trend_{key}")
+        if right.button("Open in Creator Scout", key=f"scout_{key}", icon=":material/person_search:", width="stretch"):
+            st.session_state["scout_trend"] = trend
+            st.switch_page("views/scout.py")
+
 
 tab_archive, tab_run = st.tabs(["This week's report", "Run a new scan"])
 
@@ -45,6 +61,7 @@ with tab_run:
         st.session_state["radar_cost"] = run_cost()
 
     if st.session_state.get("radar_md"):
+        find_creators(st.session_state["radar_md"], "scan")
         st.markdown(st.session_state["radar_md"])
         st.download_button("Download report (.md)", st.session_state["radar_md"], "trend-radar.md")
         st.caption(
@@ -62,7 +79,8 @@ with tab_archive:
             "Written automatically every Monday morning by a scheduled job. "
             "Reading a saved report is free; only a new scan uses Claude credits."
         )
+        text = choice.read_text()
+        find_creators(text, "saved")
         with st.container(border=True):
             # The page banner already names the tool, so the report's own title becomes a small heading.
-            text = choice.read_text()
             st.markdown("#### " + text[2:] if text.startswith("# ") else text)

@@ -147,13 +147,17 @@ def report_date(path: Path) -> str:
     return f"{day:%A, %B} {day.day}, {day.year}"
 
 
-def report_trends(path: Path) -> list[str]:
+def trends_in(text: str) -> list[str]:
     """Trend titles from the '## 1. Topic' headings of a report."""
     return [
         line.split(". ", 1)[1]
-        for line in path.read_text().splitlines()
+        for line in text.splitlines()
         if line.startswith("## ") and line[3:4].isdigit() and ". " in line
     ]
+
+
+def report_trends(path: Path) -> list[str]:
+    return trends_in(path.read_text())
 
 
 def today() -> dt.date:

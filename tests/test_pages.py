@@ -71,3 +71,13 @@ def test_handles_and_followers_are_standardized():
     assert clean_handle("") == ""
     assert format_followers(61300) == "61.3K"
     assert format_followers(1_000_000) == "1M"
+
+
+def test_radar_trend_opens_scout_prefilled():
+    at = AppTest.from_file("../Home.py", default_timeout=30).run()
+    at.switch_page("views/radar.py").run()
+    trend = at.selectbox(key="trend_saved").value
+    at.button(key="scout_saved").click().run()
+    assert not at.exception, at.exception
+    assert at.session_state["scout_trend"] == trend
+    assert any(trend in t.value for t in at.text_input)

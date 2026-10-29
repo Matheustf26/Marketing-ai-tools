@@ -11,10 +11,19 @@ DEFAULT_BRANDS = """Fast Loan Advance: fast help for unexpected expenses. Direct
 Fast Loan Direct: simple and transparent, compare offers and costs. Clear, no jargon.
 Grace Loan Advance: second chances and financial education for people rebuilding credit. Warm, non-judgmental."""
 
+trend = st.session_state.get("scout_trend")
+if trend:
+    st.info(f"Trend from Creator Radar: **{trend}**. Press Find creators to search for creators who post about it.",
+            icon=":material/radar:")
+
 with st.form("scout"):
     niche = st.text_input(
         "Niche or product",
-        value="Personal finance and budgeting for young adults, emergency expenses, rebuilding credit",
+        value=(
+            f"Personal finance creators posting about: {trend}"
+            if trend
+            else "Personal finance and budgeting for young adults, emergency expenses, rebuilding credit"
+        ),
     )
     c1, c2, c3 = st.columns(3)
     platforms = c1.multiselect(
