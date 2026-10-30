@@ -39,7 +39,7 @@ with st.form("scout"):
         ["Nano (1K-10K)", "Micro (10K-100K)", "Mid (100K-500K)", "Macro (500K+)", "Any"],
         index=1,
     )
-    count = st.slider("At most this many creators", 3, 10, 5, help="Scout returns fewer if it can't verify enough strong matches.")
+    count = st.slider("How many creators", 3, 10, 5, help="Scout fills the list with good or regular fits when strong matches run out.")
     brands = st.text_area("Brands to match (one per line: name: positioning)", value=DEFAULT_BRANDS, height=100)
     submitted = st.form_submit_button("Find creators", type="primary")
 
@@ -51,7 +51,7 @@ if submitted:
         with st.status("Searching the web…", expanded=True) as status:
             notes = research(client, prompt, on_progress=lambda q: st.markdown(f":material/search: {q}"))
             status.update(label="Organizing results…")
-            result = structure(client, notes)
+            result = structure(client, notes, count)
             status.update(label=f"Found {len(result.creators)} creators", state="complete", expanded=False)
     except ClaudeError as e:
         st.error(str(e))

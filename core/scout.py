@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from core.llm import check_refusal, parse, stream, text_of
 from core.radar import today
 
-WEB_SEARCH = {"type": "web_search_20260209", "name": "web_search", "max_uses": 12}
+WEB_SEARCH = {"type": "web_search_20260209", "name": "web_search", "max_uses": 10}
 MAX_CONTINUATIONS = 5
 
 
@@ -55,12 +55,14 @@ RESEARCH_SYSTEM = """You are an influencer marketing researcher. You find real c
 
 Rules:
 - Only list creators you actually found in search results. Never invent names, handles, URLs or numbers.
-- Prefer lists, articles and directories that name creators in the niche (e.g. "top personal finance TikTokers"), then confirm each profile.
+- Start with lists, articles and directories that name several creators at once with their handles and follower
+  counts (e.g. "top personal finance TikTokers"). They give you many candidates per search, which keeps it fast.
 - Every creator you list needs three things from a source: their @handle, the platform, and a follower count on
-  that platform. For promising creators, run one quick search on their handle (e.g. "@handle tiktok followers")
-  to find them. If you can't find all three, leave the creator out.
-- Confirm every creator with a search on their own handle. Prefer sources from the last 12 months, and when a search
-  needs a year, use the current year from the prompt, never an older one.
+  that platform. Only search a single handle when its follower count is missing.
+- You must deliver the number of creators asked for. If strong matches run out, keep searching and fill the list
+  with good or regular fits, scored honestly, rather than returning fewer.
+- Prefer sources from the last 12 months. When a search needs a year, use the current year from the prompt,
+  never an older one.
 - Never run the same search twice. If a search finds nothing useful, change the words.
 - Cast a wide net within money topics: personal finance, loans, money tips, cashback and rewards, credit cards,
   building or fixing credit, earning income or side hustles in the US. Lifestyle creators (travel, family, big
@@ -84,7 +86,8 @@ def build_research_prompt(
         else ""
     )
     day = today()
-    return f"""Today is {day:%B} {day.day}, {day.year}. Find up to {count} creators for this influencer campaign.
+    return f"""Today is {day:%B} {day.day}, {day.year}. Use {day.year} in any search that needs a year.
+Find exactly {count} creators for this influencer campaign (collect a few extra candidates in case some lack data).
 Verified creators only, with a fit score for each.
 
 Niche / product: {niche}{angle}
@@ -123,7 +126,7 @@ def research(client: anthropic.Anthropic, prompt: str, on_progress=None) -> str:
             max_tokens=16000,
             system=RESEARCH_SYSTEM,
             tools=[WEB_SEARCH],
-            output_config={"effort": "medium"},
+            output_config={"effort": "low"},
             messages=messages,
         )
         check_refusal(response)
@@ -133,7 +136,7 @@ def research(client: anthropic.Anthropic, prompt: str, on_progress=None) -> str:
     return text_of(response)
 
 
-def structure(client: anthropic.Anthropic, notes: str) -> ScoutResult:
+def structure(client: anthropic.Anthropic, notes: str, count: int | None = None) -> ScoutResult:
     """Turn the research notes into a validated table."""
     response = parse(
         client,
@@ -153,6 +156,8 @@ def structure(client: anthropic.Anthropic, notes: str) -> ScoutResult:
     result = response.parsed_output
     for c in result.creators:
         c.handle = clean_handle(c.handle)
-    # Weaker fits are kept here; the page shows only fit 7+ unless nothing else was found.
-    result.creators = [c for c in result.creators if c.handle and c.followers > 0]
+    # Keep everyone with a handle and follower count, best fits first, up to the number asked for.
+    result.creators = sorted(
+        (c for c in result.creators if c.handle and c.followers > 0), key=lambda c: c.fit_score, reverse=True
+    )[:count]
     return result
