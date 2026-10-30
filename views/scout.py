@@ -51,7 +51,8 @@ if submitted:
         with st.status("Searching the web…", expanded=True) as status:
             notes = research(client, prompt, on_progress=lambda q: st.markdown(f":material/search: {q}"))
             status.update(label="Organizing results…")
-            result = structure(client, notes, count)
+            result = structure(client, notes)
+            result.creators = sorted(result.creators, key=lambda c: c.fit_score, reverse=True)[:count]
             status.update(label=f"Found {len(result.creators)} creators", state="complete", expanded=False)
     except ClaudeError as e:
         st.error(str(e))
