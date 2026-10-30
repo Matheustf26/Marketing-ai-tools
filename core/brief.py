@@ -3,6 +3,7 @@
 import anthropic
 
 from core.llm import check_refusal, create, text_of
+from core.radar import today
 
 BRIEF_SYSTEM = """You write influencer campaign briefs that creators actually follow.
 
@@ -14,7 +15,8 @@ Every brief must:
 
 
 def write_brief(client: anthropic.Anthropic, brand: str, product: str, goal: str, creators: str, tracking: str) -> str:
-    prompt = f"""Write a campaign brief.
+    day = today()
+    prompt = f"""Today is {day:%B} {day.day}, {day.year}. Write a campaign brief. Any timeline dates start from today.
 
 Brand and positioning: {brand}
 Product / offer: {product}
