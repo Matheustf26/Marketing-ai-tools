@@ -6,6 +6,7 @@ import anthropic
 from pydantic import BaseModel, Field
 
 from core.llm import check_refusal, parse, stream, text_of
+from core.radar import today
 
 WEB_SEARCH = {"type": "web_search_20260209", "name": "web_search", "max_uses": 12}
 MAX_CONTINUATIONS = 5
@@ -58,7 +59,9 @@ Rules:
 - Every creator you list needs three things from a source: their @handle, the platform, and a follower count on
   that platform. For promising creators, run one quick search on their handle (e.g. "@handle tiktok followers")
   to find them. If you can't find all three, leave the creator out.
-- Confirm every creator with a search on their own handle. Prefer sources from the last 12 months.
+- Confirm every creator with a search on their own handle. Prefer sources from the last 12 months, and when a search
+  needs a year, use the current year from the prompt, never an older one.
+- Never run the same search twice. If a search finds nothing useful, change the words.
 - Look for creators who post about this niche regularly. Note a recent post as proof of activity, with its date
   when you have it; if you can't find one, write "not confirmed" instead of dropping an otherwise strong match.
   If a source reports average views per post, note it.
@@ -77,7 +80,9 @@ def build_research_prompt(
         if trend
         else ""
     )
-    return f"""Find up to {count} creators for this influencer campaign. Only strong, verified matches.
+    day = today()
+    return f"""Today is {day:%B} {day.day}, {day.year}. Find up to {count} creators for this influencer campaign.
+Only strong, verified matches.
 
 Niche / product: {niche}{angle}
 Platforms: {", ".join(platforms)}
@@ -96,13 +101,15 @@ Then write a short, personal first outreach DM for each one."""
 def research(client: anthropic.Anthropic, prompt: str, on_progress=None) -> str:
     """Run the web-search research turn, resuming if the server pauses a long turn."""
     messages = [{"role": "user", "content": prompt}]
+    shown = set()
 
     def show_search(event):
         # Each finished web search block carries its query: show it as it happens.
         if on_progress and event.type == "content_block_stop" and event.content_block.type == "server_tool_use":
             query = event.content_block.input
             text = query.get("query", "") if isinstance(query, dict) else ""
-            if text:  # other server tools (e.g. result filtering) have no query
+            if text and text not in shown:  # other server tools (e.g. result filtering) have no query
+                shown.add(text)
                 on_progress(text)
 
     response = None

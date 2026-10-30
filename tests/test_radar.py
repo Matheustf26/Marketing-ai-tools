@@ -38,3 +38,25 @@ def test_saved_reports_have_a_date_and_headline():
     latest = saved_reports()[0]
     assert report_date(latest).split(",")[0] in {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
     assert len(report_trends(latest)) >= 3
+
+
+def test_searches_are_shown_once():
+    from types import SimpleNamespace
+    from unittest.mock import patch
+
+    from core import scout
+
+    block = SimpleNamespace(type="server_tool_use", input={"query": "personal finance tiktok"})
+    events = [SimpleNamespace(type="content_block_stop", content_block=block)] * 3
+    final = SimpleNamespace(content=[], stop_reason="end_turn")
+
+    def fake_stream(client, on_event, **kw):
+        for e in events:
+            on_event(e)
+        return final
+
+    shown = []
+    with patch.object(scout, "stream", fake_stream), patch.object(scout, "text_of", lambda r: ""):
+        scout.research(None, "prompt", on_progress=shown.append)
+    assert shown == ["personal finance tiktok"]
+    assert scout.build_research_prompt("x", ["TikTok"], "US", "Micro", "b", 5).startswith("Today is ")

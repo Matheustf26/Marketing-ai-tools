@@ -50,6 +50,7 @@ Rules:
 - You cannot open Instagram or TikTok directly. Rely on public pages that report on them, and say so.
 - Only report creators, posts and numbers you found in sources. Never invent engagement figures.
 - Prefer recent sources. If something is older than two weeks, say so or leave it out.
+- When a search needs a year, use the current year from the prompt, never an older one. Never run the same search twice.
 - Content ideas must fit a regulated financial brand: no guaranteed outcomes, no pressure to borrow."""
 
 
@@ -69,12 +70,14 @@ brands, and any compliance risk. Also list the content formats that are performi
 
 def research(client: anthropic.Anthropic, prompt: str, on_progress=None) -> str:
     messages = [{"role": "user", "content": prompt}]
+    shown = set()
 
     def show_search(event):
         if on_progress and event.type == "content_block_stop" and event.content_block.type == "server_tool_use":
             query = event.content_block.input
             text = query.get("query", "") if isinstance(query, dict) else ""
-            if text:  # other server tools (e.g. result filtering) have no query
+            if text and text not in shown:  # other server tools (e.g. result filtering) have no query
+                shown.add(text)
                 on_progress(text)
 
     response = None
