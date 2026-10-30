@@ -6,7 +6,6 @@ import anthropic
 from pydantic import BaseModel, Field
 
 from core.llm import check_refusal, parse, stream, text_of
-from core.roi import GOOD_FIT
 
 WEB_SEARCH = {"type": "web_search_20260209", "name": "web_search", "max_uses": 12}
 MAX_CONTINUATIONS = 5
@@ -60,18 +59,27 @@ Rules:
   that platform. For promising creators, run one quick search on their handle (e.g. "@handle tiktok followers")
   to find them. If you can't find all three, leave the creator out.
 - Confirm every creator with a search on their own handle. Prefer sources from the last 12 months.
-- Only keep creators who post about this niche regularly and were active in the last 90 days. Note a recent post or
-  source as proof, with its date when you have it. If a source reports average views per post, note it.
-- Leave out brand accounts, agencies, inactive accounts and anyone whose fit would be below 7 out of 10.
-  Fewer strong matches are better than a long list of weak ones: return fewer than asked rather than pad the list.
+- Look for creators who post about this niche regularly. Note a recent post as proof of activity, with its date
+  when you have it; if you can't find one, write "not confirmed" instead of dropping an otherwise strong match.
+  If a source reports average views per post, note it.
+- Leave out brand accounts, agencies and accounts that are clearly inactive. Score fit honestly: fewer strong
+  matches are better than a long list of weak ones.
 - Flag brand-safety risks honestly: get-rich-quick claims, controversies, promoting competitors, signs of fake followers.
 - In regulated categories (finance, health), note anything that could create compliance risk."""
 
 
-def build_research_prompt(niche: str, platforms: list[str], country: str, size: str, brands: str, count: int) -> str:
+def build_research_prompt(
+    niche: str, platforms: list[str], country: str, size: str, brands: str, count: int, trend: str = ""
+) -> str:
+    angle = (
+        f"\nThis week's trend to build content around: {trend}\n"
+        "Find creators in the niche whose regular content suits this topic. They don't need a post about this exact news.\n"
+        if trend
+        else ""
+    )
     return f"""Find up to {count} creators for this influencer campaign. Only strong, verified matches.
 
-Niche / product: {niche}
+Niche / product: {niche}{angle}
 Platforms: {", ".join(platforms)}
 Country / audience: {country}
 Creator size: {size}
@@ -126,7 +134,7 @@ def structure(client: anthropic.Anthropic, notes: str) -> ScoutResult:
             {
                 "role": "user",
                 "content": "Convert these research notes into the schema. Keep only creators whose notes give an "
-                "@handle, one platform and a follower count on that platform, and who fit the brief well. Leave out everyone else, and "
+                "@handle, one platform and a follower count on that platform. Leave out everyone else, and "
                 "do not add anyone new.\n\n" + notes,
             }
         ],
@@ -135,5 +143,6 @@ def structure(client: anthropic.Anthropic, notes: str) -> ScoutResult:
     result = response.parsed_output
     for c in result.creators:
         c.handle = clean_handle(c.handle)
-    result.creators = [c for c in result.creators if c.handle and c.followers > 0 and c.fit_score >= GOOD_FIT]
+    # Weaker fits are kept here; the page shows only fit 7+ unless nothing else was found.
+    result.creators = [c for c in result.creators if c.handle and c.followers > 0]
     return result

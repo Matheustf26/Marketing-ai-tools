@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from core.llm import ClaudeError, get_client, reset_cost, run_cost
+from core.roi import GOOD_FIT
 from core.scout import build_research_prompt, clean_handle, format_followers, research, structure
 from core.ui import header
 
@@ -13,18 +14,15 @@ Grace Loan Advance: second chances and financial education for people rebuilding
 
 trend = st.session_state.get("scout_trend")
 if trend:
-    st.info(f"Trend from Creator Radar: **{trend}**. Press Find creators to search for creators who post about it.",
+    st.info(f"Trend from Creator Radar: **{trend}**. Scout looks for creators in the niche whose content suits it.",
             icon=":material/radar:")
 
 with st.form("scout"):
     niche = st.text_input(
         "Niche or product",
-        value=(
-            f"Personal finance creators posting about: {trend}"
-            if trend
-            else "Personal finance and budgeting for young adults, emergency expenses, rebuilding credit"
-        ),
+        value="Personal finance and budgeting for young adults, emergency expenses, rebuilding credit",
     )
+    angle = st.text_input("Trend to build content around (optional)", value=trend or "")
     c1, c2, c3 = st.columns(3)
     platforms = c1.multiselect(
         "Platforms", ["Instagram", "TikTok", "YouTube", "X"], default=["Instagram", "TikTok"]
@@ -41,7 +39,7 @@ with st.form("scout"):
 
 if submitted:
     client = get_client()
-    prompt = build_research_prompt(niche, platforms, country, size, brands, count)
+    prompt = build_research_prompt(niche, platforms, country, size, brands, count, angle)
     reset_cost()
     try:
         with st.status("Searching the web…", expanded=True) as status:
@@ -59,8 +57,16 @@ result = st.session_state.get("scout_result")
 if result:
     df = pd.DataFrame([c.model_dump() for c in result.creators])
     if df.empty:
-        st.warning("No creators passed the checks (confirmed handle, follower count, recent activity, fit 7+). Try a broader niche or another platform.")
+        st.warning("No creators with a confirmed handle and follower count. Try a broader niche, another platform or another size.")
+        st.caption(result.search_summary)
         st.stop()
+    strong = df[df["fit_score"] >= GOOD_FIT]
+    if strong.empty:
+        st.warning(f"No strong matches (fit {GOOD_FIT}+). These are the closest ones Scout could verify: review them carefully.")
+    else:
+        if len(strong) < len(df):
+            st.caption(f"Left out {len(df) - len(strong)} creators with a fit below {GOOD_FIT}.")
+        df = strong.copy()
     df["handle"] = df["handle"].map(clean_handle)
     df = df.sort_values(["fit_score", "followers"], ascending=False)
     df["followers_label"] = df["followers"].map(format_followers)
@@ -90,8 +96,7 @@ if result:
         with st.expander(label):
             st.write(f"**What they post:** {row['content_summary']}")
             st.write(f"**Why they fit:** {row['audience_fit']}")
-            if row["recent_activity"]:
-                st.write(f"**Recent activity:** {row['recent_activity']}")
+            st.write(f"**Recent activity:** {row['recent_activity'] or 'Not confirmed'}")
             st.write(f"**Best brand:** {row['best_brand']}")
             st.write(f"**Brand safety:** {row['brand_safety']}")
             st.text_area("First message", row["outreach_message"], key=f"dm_{row.name}", height=110)

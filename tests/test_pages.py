@@ -84,3 +84,22 @@ def test_radar_trend_opens_scout_prefilled():
     assert not at.exception, at.exception
     assert at.session_state["scout_trend"] == trend
     assert any(trend in t.value for t in at.text_input)
+
+
+def test_scout_shows_close_matches_when_no_strong_fit():
+    from core.scout import build_research_prompt
+
+    prompt = build_research_prompt("Personal finance", ["TikTok"], "United States", "Micro", "FLA", 5, "Prices going up")
+    assert "Prices going up" in prompt and "don't need a post about this exact news" in prompt
+
+    weak = Creator(
+        name="Sam Budget", handle="@sambudget", platform="Instagram", followers=40000, content_summary="Budgets",
+        audience_fit="Partly", fit_score=5, best_brand="Any", brand_safety_flags=[], outreach_message="Hi Sam!",
+        source_url="https://example.com",
+    )
+    at = AppTest.from_file("../Home.py", default_timeout=30).run()
+    at.switch_page("views/scout.py")
+    at.session_state["scout_result"] = ScoutResult(search_summary="Found on one list.", creators=[weak])
+    at.run()
+    assert not at.exception, at.exception
+    assert any("No strong matches" in w.value for w in at.warning)
