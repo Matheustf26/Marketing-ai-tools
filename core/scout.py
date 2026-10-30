@@ -62,11 +62,14 @@ Rules:
 - Confirm every creator with a search on their own handle. Prefer sources from the last 12 months, and when a search
   needs a year, use the current year from the prompt, never an older one.
 - Never run the same search twice. If a search finds nothing useful, change the words.
-- Look for creators who post about this niche regularly. Note a recent post as proof of activity, with its date
+- Cast a wide net within money topics: personal finance, loans, money tips, cashback and rewards, credit cards,
+  building or fixing credit, earning income or side hustles in the US. Lifestyle creators (travel, family, big
+  purchases, moving) also count when their audience may need extra cash now and then.
+- Look for creators who post about these topics regularly. Note a recent post as proof of activity, with its date
   when you have it; if you can't find one, write "not confirmed" instead of dropping an otherwise strong match.
   If a source reports average views per post, note it.
-- Leave out brand accounts, agencies and accounts that are clearly inactive. Score fit honestly: fewer strong
-  matches are better than a long list of weak ones.
+- Leave out brand accounts, agencies and accounts that are clearly inactive. Score fit honestly from 1 to 10:
+  8-10 core money creators who match the brief, 6-7 adjacent money topics, 4-5 lifestyle creators with a plausible fit.
 - Flag brand-safety risks honestly: get-rich-quick claims, controversies, promoting competitors, signs of fake followers.
 - In regulated categories (finance, health), note anything that could create compliance risk."""
 
@@ -82,7 +85,7 @@ def build_research_prompt(
     )
     day = today()
     return f"""Today is {day:%B} {day.day}, {day.year}. Find up to {count} creators for this influencer campaign.
-Only strong, verified matches.
+Verified creators only, with a fit score for each.
 
 Niche / product: {niche}{angle}
 Platforms: {", ".join(platforms)}

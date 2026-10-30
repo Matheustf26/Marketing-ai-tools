@@ -2,9 +2,15 @@ import pandas as pd
 import streamlit as st
 
 from core.llm import ClaudeError, get_client, reset_cost, run_cost
-from core.roi import GOOD_FIT
 from core.scout import build_research_prompt, clean_handle, format_followers, research, structure
 from core.ui import header
+
+SHOW_FROM = 4  # fit scores below this are hidden
+
+
+def fit_label(score: int) -> str:
+    return "Very good" if score >= 8 else "Good" if score >= 6 else "Regular"
+
 
 header("scout", "Creator Scout", "Real creators found on the web, scored for fit and brand safety, with a first message ready to send.")
 
@@ -60,13 +66,15 @@ if result:
         st.warning("No creators with a confirmed handle and follower count. Try a broader niche, another platform or another size.")
         st.caption(result.search_summary)
         st.stop()
-    strong = df[df["fit_score"] >= GOOD_FIT]
-    if strong.empty:
-        st.warning(f"No strong matches (fit {GOOD_FIT}+). These are the closest ones Scout could verify: review them carefully.")
-    else:
-        if len(strong) < len(df):
-            st.caption(f"Left out {len(df) - len(strong)} creators with a fit below {GOOD_FIT}.")
-        df = strong.copy()
+    shown = df[df["fit_score"] >= SHOW_FROM]
+    if shown.empty:
+        st.warning("No creators with at least a regular fit. Try a broader niche, another platform or another size.")
+        st.caption(result.search_summary)
+        st.stop()
+    if len(shown) < len(df):
+        st.caption(f"Left out {len(df) - len(shown)} creators with a poor fit.")
+    df = shown.copy()
+    df["fit"] = df["fit_score"].map(fit_label)
     df["handle"] = df["handle"].map(clean_handle)
     df = df.sort_values(["fit_score", "followers"], ascending=False)
     df["followers_label"] = df["followers"].map(format_followers)
@@ -76,14 +84,14 @@ if result:
     st.subheader(f"{len(df)} creators")
     st.caption(result.search_summary)
     st.dataframe(
-        df[["name", "handle", "platform", "followers_label", "views_label", "fit_score", "best_brand"]],
+        df[["name", "handle", "platform", "followers_label", "views_label", "fit", "best_brand"]],
         column_config={
             "name": "Creator",
             "handle": "Handle",
             "platform": "Platform",
             "followers_label": "Followers",
             "views_label": "Avg views",
-            "fit_score": st.column_config.ProgressColumn("Fit", min_value=0, max_value=10, format="%d/10"),
+            "fit": "Fit",
             "best_brand": "Best brand",
         },
         hide_index=True,
@@ -92,7 +100,7 @@ if result:
 
     st.subheader("Details and outreach")
     for _, row in df.iterrows():
-        label = f"{row['name']}, {row['handle']}, {row['followers_label']} on {row['platform']}, fit {row['fit_score']}/10"
+        label = f"{row['name']}, {row['handle']}, {row['followers_label']} on {row['platform']}, {row['fit']} fit"
         with st.expander(label):
             st.write(f"**What they post:** {row['content_summary']}")
             st.write(f"**Why they fit:** {row['audience_fit']}")

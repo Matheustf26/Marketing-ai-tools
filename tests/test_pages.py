@@ -102,4 +102,5 @@ def test_scout_shows_close_matches_when_no_strong_fit():
     at.session_state["scout_result"] = ScoutResult(search_summary="Found on one list.", creators=[weak])
     at.run()
     assert not at.exception, at.exception
-    assert any("No strong matches" in w.value for w in at.warning)
+    assert not at.warning
+    assert "Regular" in at.dataframe[0].value["fit"].tolist()
